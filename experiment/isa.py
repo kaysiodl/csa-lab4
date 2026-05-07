@@ -13,7 +13,11 @@ class Opcode(Enum):
     AND = 0b01000
     OR = 0b01001
     NOT = 0b01010
-    CMP = 0b01011
+    MOD = 0b01011
+    INC = 0b01100
+    NEG = 0b01101
+    SWAP = 0b01110
+    CMP = 0b01111
     JMP = 0b10000
     JZ = 0b10001
     JN = 0b10010
@@ -24,13 +28,11 @@ class Opcode(Enum):
 
 
 def encode(opcode: Opcode, arg: int = 0) -> int:
-    arg_27 = arg & 0x07FF_FFFF
-    return (opcode.value << 27) | arg_27
+    return (opcode.value << 27) | (arg & 0x07FF_FFFF)
 
 
 def decode(word: int) -> dict:
     opcode_bits = (word >> 27) & 0x1F
     arg_bits = word & 0x07FF_FFFF
-    if arg_bits >= (1 << 26):
-        arg_bits -= (1 << 27)
+    if arg_bits >= (1 << 26): arg_bits -= (1 << 27)
     return {"opcode": Opcode(opcode_bits), "arg": arg_bits, "raw": word}
