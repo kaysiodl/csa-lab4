@@ -143,16 +143,16 @@
 ## Память микрокоманд 
 Каждaя микрокоманда представлена с помощью 25 бит:
 ```text
-Бит 24..23  ARLatch    (2 бит): 0=нет, 1=PC, 2=TOS, 3=CR
-Бит 22..21  MEMSignal  (2 бит): 0=нет, 1=READ, 2=WRITE
-Бит 20..19  BRLatch    (2 бит): 0=нет, 1=TOS, 2=NOS, 3=MEM
-Бит 18..17  DSLatch    (2 бит): 0=нет, 1=PUSH, 2=POP, 3=PUSH_BR
-Бит 16..13  ALULatch   (4 бит): 0=нет, 1=ADD, 2=SUB, ..., 10=INC
-Бит 12..10  TOSLatch   (3 бит): 0=нет, 1=MEM, 2=ALU, ..., 6=CR
-Бит  9..8   IOLatch    (2 бит): 0=нет, 1=IN, 2=OUT
-Бит  7..6   PCLatch    (2 бит): 0=нет, 1=INC, 2=CR
-Бит  5..4   JUMP       (2 бит): 0=нет, 1=JMP, 2=JZ, 3=JN
-Бит  3..2   MCAdrLatch (2 бит): 0=нет, 1=ZERO, 2=INC, 3=INPUT
+Бит 24..23  ARLatch    (2 бит): 0=нет, 01=PC, 10=TOS, 11=CR
+Бит 22..21  MEMSignal  (2 бит): 0=нет, 01=READ, 10=WRITE
+Бит 20..19  BRLatch    (2 бит): 0=нет, 01=TOS, 10=NOS, 11=MEM
+Бит 18..17  DSLatch    (2 бит): 0=нет, 01=PUSH, 10=POP, 11=PUSH_BR
+Бит 16..13  ALULatch   (4 бит): 0=нет, 0001=ADD, 0010=SUB, ..., 1010=INC
+Бит 12..10  TOSLatch   (3 бит): 0=нет, 001=MEM, 010=ALU, ..., 110=CR
+Бит  9..8   IOLatch    (2 бит): 0=нет, 01=IN, 10=OUT
+Бит  7..6   PCLatch    (2 бит): 0=нет, 01=INC, 10=CR
+Бит  5..4   JUMP       (2 бит): 0=нет, 01=JMP, 10=JZ, 11=JN
+Бит  3..2   MCAdrLatch (2 бит): 0=нет, 01=ZERO, 10=INC, 11=INPUT
 Бит  1      Instruction(1 бит): 1=INC
 Бит  0      PROG       (1 бит): 1=HALT
 ```
