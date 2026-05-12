@@ -11,8 +11,57 @@ def op2microcode(op: Opcode) -> int:
         Opcode.DUP: 30, Opcode.DROP: 32, Opcode.SWAP: 34,
         Opcode.CMP: 38, Opcode.JMP: 41, Opcode.JZ: 44,
         Opcode.JN: 47, Opcode.IN: 50, Opcode.OUT: 52,
-        Opcode.HALT: 54,
+        Opcode.HALT: 54, Opcode.CALL: 55, Opcode.RET: 58,
     }[op]
+
+
+def encode_mc(signals: list) -> int:
+    SHIFTS = {
+        RSLatch: 25,
+        ARLatch: 23,
+        MEMSignal: 21,
+        BRLatch: 19,
+        DSLatch: 17,
+        ALULatch: 13,
+        TOSLatch: 10,
+        IOLatch: 8,
+        PCLatch: 6,
+        JUMP: 4,
+        MCAdrLatch: 2,
+        Instruction: 1,
+        PROG: 0
+    }
+
+    control_word = 0
+    for s in signals:
+        signal_type = type(s)
+        if signal_type in SHIFTS:
+            control_word |= (s.value << SHIFTS[signal_type])
+    return control_word
+
+
+def decode_mc(mc: int) -> list:
+    FIELDS = [
+        (RSLatch, 25, 0b11),
+        (ARLatch, 23, 0b11),
+        (MEMSignal, 21, 0b11),
+        (BRLatch, 19, 0b11),
+        (DSLatch, 17, 0b11),
+        (ALULatch, 13, 0b1111),
+        (TOSLatch, 10, 0b111),
+        (IOLatch, 8, 0b11),
+        (PCLatch, 6, 0b11),
+        (JUMP, 4, 0b11),
+        (MCAdrLatch, 2, 0b11),
+        (Instruction, 1, 0b1),
+        (PROG, 0, 0b1),
+    ]
+    result = []
+    for cls, shift, mask in FIELDS:
+        val = (mc >> shift) & mask
+        if val != 0:
+            result.append(cls(val))
+    return result
 
 
 microcode = [
@@ -20,19 +69,19 @@ microcode = [
     [ARLatch.PC, MEMSignal.READ, MCAdrLatch.INC],
     [PCLatch.INC, MCAdrLatch.INPUT],
 
-    # PUSHC: 2  — аргумент уже в CR после FETCH
+    # PUSHC: 2
     [DSLatch.PUSH, TOSLatch.CR, MCAdrLatch.INC],
     [MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # PUSH addr: 5  — загрузить MEM[addr] на стек
-    [ARLatch.CR, MEMSignal.READ, MCAdrLatch.INC],  # AR←CR.arg, читаем MEM
-    [DSLatch.PUSH, TOSLatch.MEM, MCAdrLatch.INC],  # TOS←MEM, старый TOS в DS
+    # PUSH addr: 5
+    [ARLatch.CR, MEMSignal.READ, MCAdrLatch.INC],
+    [DSLatch.PUSH, TOSLatch.MEM, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # POP: 8  — TOS=addr, NOS=value; MEM[addr]←NOS, снять оба
-    [ARLatch.TOS, MEMSignal.WRITE, MCAdrLatch.INC],  # AR=TOS(addr), MEM[AR]←DS.peek()=NOS
-    [DSLatch.POP, MCAdrLatch.INC],  # TOS←DS.pop()
+    # POP: 8
+    [ARLatch.TOS, MEMSignal.WRITE, MCAdrLatch.INC],
+    [DSLatch.POP, MCAdrLatch.INC],
     [MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
@@ -64,7 +113,7 @@ microcode = [
     [ALULatch.OR, TOSLatch.ALU, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # NOT: 26  — унарная
+    # NOT: 26
     [ALULatch.NOT, TOSLatch.ALU, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
@@ -80,40 +129,52 @@ microcode = [
     [DSLatch.POP, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # SWAP: 34  — обменять TOS и NOS
+    # SWAP: 34
     [BRLatch.TOS, MCAdrLatch.INC],
     [TOSLatch.NOS, MCAdrLatch.INC],
-    [DSLatch.PUSH_BR, MCAdrLatch.INC],  # DS.push(BR=старый TOS)
+    [DSLatch.PUSH_BR, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # CMP: 36  — SUB, флаги, оба операнда снимаем
+    # CMP: 38
     [ALULatch.SUB, MCAdrLatch.INC],
     [DSLatch.POP, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # JMP: 39  — аргумент уже в CR
+    # JMP: 41
     [JUMP.JMP, MCAdrLatch.INC],
     [MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # JZ: 42
+    # JZ: 44
     [JUMP.JZ, MCAdrLatch.INC],
     [MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # JN: 45
+    # JN: 47
     [JUMP.JN, MCAdrLatch.INC],
     [MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # IN: 48  — TOS = port_addr уже на стеке
+    # IN: 50
     [DSLatch.PUSH, TOSLatch.INPUT, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # OUT: 50  — TOS=port, NOS=value
+    # OUT: 52
     [IOLatch.OUT, DSLatch.POP, MCAdrLatch.INC],
     [Instruction.INC, MCAdrLatch.ZERO],
 
-    # HALT: 52
+    # HALT: 54
     [PROG.HALT],
+
+    # CALL addr: 55
+    [RSLatch.PUSH, MCAdrLatch.INC],
+    [JUMP.JMP, MCAdrLatch.INC],
+    [Instruction.INC, MCAdrLatch.ZERO],
+
+    # RET: 58
+    [PCLatch.RS, MCAdrLatch.INC],
+    [Instruction.INC, MCAdrLatch.ZERO],
 ]
+
+microcode = [encode_mc(step) for step in microcode]
+print(microcode)

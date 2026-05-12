@@ -25,6 +25,8 @@ class Opcode(Enum):
     OUT = 0b10100
     DUP = 0b10101
     DROP = 0b10110
+    CALL = 0b10111
+    RET = 0b11000
 
 
 def encode(opcode: Opcode, arg: int = 0) -> int:

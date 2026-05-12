@@ -13,6 +13,10 @@ class TOSLatch(Enum):
     BR = auto()
     CR = auto()
 
+class RSLatch(Enum): #из pc и в pc
+    PUSH = auto()
+    POP = auto()
+
 class DSLatch(Enum):
     PUSH = auto()
     POP = auto()
@@ -49,6 +53,7 @@ class MemDataLatch(Enum):
 class PCLatch(Enum):
     INC = auto()
     CR = auto()
+    RS = auto()
 
 class JUMP(Enum):
     JMP = auto()

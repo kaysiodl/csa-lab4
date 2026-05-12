@@ -18,6 +18,20 @@ class DataStack:
 
     def peek(self) -> int: return self.stack[-1] if self.stack else 0
 
+class ReturnStack:
+    def __init__(self):
+        self.return_stack: list[int] = []
+
+    def push(self, addr: int): self.return_stack.append(addr)
+
+    def pop(self) -> int:
+        if not self.return_stack: raise IndexError("Return stack underflow")
+        return self.return_stack.pop()
+
+    def peek(self) -> int: return self.return_stack[-1] if self.return_stack else 0
+
+    def __repr__(self): return str(self.return_stack)
+
 
 class Memory:
     def __init__(self, size=65536):
@@ -72,6 +86,7 @@ class DataPath:
         self.br = 0
         self.memory = Memory(mem_size)
         self.data_stack = DataStack()
+        self.return_stack = ReturnStack()
         self.alu = ALU()
         self.io_controller = io_controller
 
@@ -90,6 +105,8 @@ class DataPath:
         elif sel == PCLatch.CR:
             decoded = decode(self.cr)
             self.pc = decoded["arg"]
+        elif sel == PCLatch.RS:
+            self.pc = self.return_stack.pop()
 
     def signal_latch_tos(self, sel: TOSLatch):
         if sel == TOSLatch.MEM:
@@ -115,7 +132,18 @@ class DataPath:
         elif sel == DSLatch.PUSH_BR:
             self.data_stack.push(self.br)
 
-    def signal_alu_op(self, op: ALU_OP):
+    def signal_return_stack(self, sel: RSLatch):
+        match sel:
+            case RSLatch.PUSH:
+                self.return_stack.push(self.pc)
+            case RSLatch.POP:
+                self.pc = self.return_stack.pop()
+
+    def signal_alu_op(self, op: ALULatch):
+        try:
+            op = ALU_OP(op.value)
+        except ValueError:
+            return
         unary = {ALU_OP.NOT, ALU_OP.NEG, ALU_OP.INC}
         if op not in unary:
             self.alu.first = self.data_stack.peek()
