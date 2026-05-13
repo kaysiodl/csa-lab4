@@ -5,11 +5,11 @@ from datapath import DataPath
 from isa import decode
 from microcode import microcode, op2microcode, decode_mc
 from signals_cpu import (
-    ALULatch, ARLatch, BRLatch, DSLatch, Instruction, IOLatch,
+    ALULatch, ARLatch, DSLatch, Instruction, IOLatch,
     JUMP, MCAdrLatch, MEMSignal, PCLatch, PROG, RSLatch, TOSLatch,
 )
 
-INSTRUCTION_LIMIT = 100_000
+INSTRUCTION_LIMIT = 1_000
 
 
 class InvalidSignalError(Exception):
@@ -34,7 +34,6 @@ class ControlUnit:
             RSLatch:     (dp.signal_return_stack, True),
             ARLatch:     (dp.signal_latch_ar,     True),
             MEMSignal:   (dp.signal_mem,          True),
-            BRLatch:     (dp.signal_latch_br,     True),
             DSLatch:     (dp.signal_stack_ops,    True),
             ALULatch:    (dp.signal_alu_op,       True),
             TOSLatch:    (dp.signal_latch_tos,    True),
@@ -59,7 +58,7 @@ class ControlUnit:
     def execute_micro(self, mc_word: int):
         signals = decode_mc(mc_word)
         for signal in signals:
-            if isinstance(signal, PROG):
+            if signal == PROG.HALT:
                 raise StopIteration("HALT")
             handler_entry = self.signal_handlers.get(type(signal))
             if handler_entry is None:
@@ -84,11 +83,11 @@ class ControlUnit:
         signals = decode_mc(mc_word)
         sig_str  = ", ".join(f"{type(s).__name__}.{s.name}" for s in signals)
         cr_info  = decode(dp.cr) if dp.cr else {}
-        opcode_s = str(cr_info.get("opcode", "?"))
+        opcode_s = str(cr_info.get("opcode", "HALT"))
         return (
-            "TICK:{:4d} | PC:{:3d} AR:{:3d} mc:{:2d} | "
+            "TICK:{:4d} | PC:{:3d} | AR:{:3d} | mc:{:2d} | "
             "mc=0x{:07x} | CR:{:10s} | TOS:{:6} | "
-            "Z:{} N:{} | DS:{} RS:{} | [{}]"
+            "Z:{} N:{} |DS:{} RS:{} | [{}]"
         ).format(
             self.tick, dp.pc, dp.ar, self.mc_adr,
             mc_word, opcode_s, str(dp.tos),

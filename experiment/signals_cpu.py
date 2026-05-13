@@ -12,18 +12,19 @@ class TOSLatch(Enum):
     ALU = auto()
     BR = auto()
     CR = auto()
+    RS = auto()
 
-class RSLatch(Enum): #из pc и в pc
-    PUSH = auto()
-    POP = auto()
+class RSLatch(Enum):
+    PC = auto()
+    TOS = auto()
+
 
 class DSLatch(Enum):
     PUSH = auto()
-    POP = auto()
-    PUSH_BR = auto()
 
 class MEMSignal(Enum):
-    READ = auto()
+    READ_CR = auto()
+    READ_TOS = auto()
     WRITE = auto()
 
 class ALUValues(Enum):
@@ -41,11 +42,6 @@ class ALULatch(Enum):
     OR = auto()
     NEG = auto()
     INC = auto()
-
-class BRLatch(Enum):
-    TOS = auto()
-    NOS = auto()
-    MEM = auto()
 
 class MemDataLatch(Enum):
     NOS = auto()

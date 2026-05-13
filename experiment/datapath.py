@@ -18,6 +18,7 @@ class DataStack:
 
     def peek(self) -> int: return self.stack[-1] if self.stack else 0
 
+
 class ReturnStack:
     def __init__(self):
         self.return_stack: list[int] = []
@@ -83,7 +84,6 @@ class DataPath:
         self.ar = 0
         self.tos = 0
         self.cr = 0
-        self.br = 0
         self.memory = Memory(mem_size)
         self.data_stack = DataStack()
         self.return_stack = ReturnStack()
@@ -97,14 +97,14 @@ class DataPath:
             self.ar = self.tos
         elif sel == ARLatch.CR:
             decoded = decode(self.cr)
-            self.ar = decoded["arg"]
+            self.ar = decoded["arg"] & 0x07FF_FFFF
 
     def signal_latch_pc(self, sel: PCLatch):
         if sel == PCLatch.INC:
             self.pc = (self.pc + 1) & 0x07FF_FFFF
         elif sel == PCLatch.CR:
             decoded = decode(self.cr)
-            self.pc = decoded["arg"]
+            self.pc = decoded["arg"] & 0x07FF_FFFF
         elif sel == PCLatch.RS:
             self.pc = self.return_stack.pop()
 
@@ -121,23 +121,18 @@ class DataPath:
         elif sel == TOSLatch.CR:
             decoded = decode(self.cr)
             self.tos = decoded["arg"]
-        elif sel == TOSLatch.BR:
-            self.tos = self.br
+        elif sel == TOSLatch.RS:
+            self.tos = self.return_stack.pop()
 
     def signal_stack_ops(self, sel: DSLatch):
         if sel == DSLatch.PUSH:
             self.data_stack.push(self.tos)
-        elif sel == DSLatch.POP:
-            self.tos = self.data_stack.pop()
-        elif sel == DSLatch.PUSH_BR:
-            self.data_stack.push(self.br)
 
     def signal_return_stack(self, sel: RSLatch):
-        match sel:
-            case RSLatch.PUSH:
-                self.return_stack.push(self.pc)
-            case RSLatch.POP:
-                self.pc = self.return_stack.pop()
+        if sel == RSLatch.PC:
+            self.return_stack.push(self.pc)
+        elif sel == RSLatch.TOS:
+            self.return_stack.push(self.tos)
 
     def signal_alu_op(self, op: ALULatch):
         try:
@@ -157,19 +152,13 @@ class DataPath:
             self.data_stack.pop()
 
     def signal_mem(self, sel: MEMSignal):
-        if sel == MEMSignal.READ:
+        if sel == MEMSignal.READ_CR:
             self.memory.read(self.ar)
             self.cr = self.memory.data_out
+        if sel == MEMSignal.READ_TOS:
+            self.memory.read(self.ar)
         elif sel == MEMSignal.WRITE:
-            self.memory.write(self.ar, self.data_stack.peek())
-
-    def signal_latch_br(self, sel: BRLatch):
-        if sel == BRLatch.TOS:
-            self.br = self.tos
-        elif sel == BRLatch.NOS:
-            self.br = self.data_stack.peek()
-        elif sel == BRLatch.MEM:
-            self.br = self.memory.data_out
+            self.memory.write(self.ar, self.tos)
 
     def signal_io(self, sel: IOLatch):
         if sel == IOLatch.OUT:
@@ -180,10 +169,10 @@ class DataPath:
     def signal_jump(self, sel: JUMP):
         decoded = decode(self.cr)
         if sel == JUMP.JMP:
-            self.pc = decoded["arg"]
+            self.pc = decoded["arg"] & 0x07FF_FFFF
         elif sel == JUMP.JZ:
             if self.alu.zero_flag:
-                self.pc = decoded["arg"]
+                self.pc = decoded["arg"] & 0x07FF_FFFF
         elif sel == JUMP.JN:
             if self.alu.neg_flag:
                 self.pc = decoded["arg"]
