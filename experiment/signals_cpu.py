@@ -19,8 +19,9 @@ class RSLatch(Enum):
     TOS = auto()
 
 
-class DSLatch(Enum):
-    PUSH = auto()
+class NOSLatch(Enum):
+    TOS = auto()
+    RS = auto()
 
 class MEMSignal(Enum):
     READ_CR = auto()
@@ -55,6 +56,7 @@ class JUMP(Enum):
     JMP = auto()
     JZ = auto()
     JN = auto()
+    NEXT = auto()
 
 class IOLatch(Enum):
     IN = auto()
@@ -66,8 +68,6 @@ class CheckFlag(Enum):
     V = auto
     C = auto
 
-class Instruction(Enum):
-    INC = auto()
 
 class MCAdrLatch(Enum):
     ZERO = auto()

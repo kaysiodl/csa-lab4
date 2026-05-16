@@ -27,7 +27,9 @@ class Opcode(Enum):
     DROP = 0b10110
     CALL = 0b10111
     RET = 0b11000
-
+    NEXT = 0b11001
+    TORS = 0b11010
+    FROMRS = 0b11011
 
 def encode(opcode: Opcode, arg: int = 0) -> int:
     return (opcode.value << 27) | (arg & 0x07FF_FFFF)

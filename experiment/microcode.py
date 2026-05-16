@@ -23,19 +23,23 @@ def op2microcode(op: Opcode) -> int:
         Opcode.DUP: 15,
         Opcode.DROP: 16,
 
-        Opcode.CMP: 18,
+        Opcode.CMP: 17,
 
-        Opcode.JMP: 19,
-        Opcode.JZ: 20,
-        Opcode.JN: 21,
+        Opcode.JMP: 18,
+        Opcode.JZ: 19,
+        Opcode.JN: 20,
 
-        Opcode.IN: 22,
-        Opcode.OUT: 23,
+        Opcode.IN: 21,
+        Opcode.OUT: 22,
 
-        Opcode.HALT: 25,
+        Opcode.HALT: 24,
 
-        Opcode.CALL: 26,
-        Opcode.RET: 28,
+        Opcode.CALL: 25,
+        Opcode.RET: 27,
+        Opcode.NEXT: 28,
+        Opcode.TORS: 29,
+        Opcode.FROMRS: 30,
+        Opcode.SWAP: 31,
     }[op]
 
 
@@ -44,14 +48,13 @@ def encode_mc(signals: list) -> int:
         RSLatch: 23,
         ARLatch: 21,
         MEMSignal: 19,
-        DSLatch: 17,
+        NOSLatch: 17,
         ALULatch: 13,
         TOSLatch: 10,
         IOLatch: 8,
         PCLatch: 6,
-        JUMP: 4,
-        MCAdrLatch: 2,
-        Instruction: 1,
+        JUMP: 3,
+        MCAdrLatch: 1,
         PROG: 0
     }
 
@@ -65,22 +68,21 @@ def encode_mc(signals: list) -> int:
 
 
 def decode_mc(mc: int) -> list:
-    FIELDS = [
+    FIELNOS = [
         (RSLatch, 23, 0b11),
         (ARLatch, 21, 0b11),
         (MEMSignal, 19, 0b11),
-        (DSLatch, 17, 0b11),
+        (NOSLatch, 17, 0b11),
         (ALULatch, 13, 0b1111),
         (TOSLatch, 10, 0b111),
         (IOLatch, 8, 0b11),
         (PCLatch, 6, 0b11),
-        (JUMP, 4, 0b11),
-        (MCAdrLatch, 2, 0b11),
-        (Instruction, 1, 0b1),
+        (JUMP, 3, 0b111),
+        (MCAdrLatch, 1, 0b11),
         (PROG, 0, 0b1),
     ]
     result = []
-    for cls, shift, mask in FIELDS:
+    for cls, shift, mask in FIELNOS:
         val = (mc >> shift) & mask
         if val != 0:
             result.append(cls(val))
@@ -93,83 +95,90 @@ microcode = [
     [ARLatch.PC, MEMSignal.READ_CR, PCLatch.INC, MCAdrLatch.INPUT],
 
     # PUSHC: 1
-    [DSLatch.PUSH, TOSLatch.CR, Instruction.INC, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, TOSLatch.CR, MCAdrLatch.ZERO],
 
     # PUSH addr: 2
     [ARLatch.CR, MEMSignal.READ_TOS, MCAdrLatch.INC],
-    [DSLatch.PUSH, TOSLatch.MEM, Instruction.INC, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, TOSLatch.MEM, MCAdrLatch.ZERO],
 
     # POP: 4
     [ARLatch.CR, MEMSignal.WRITE, MCAdrLatch.INC],
-    [TOSLatch.NOS, Instruction.INC, MCAdrLatch.ZERO],
+    [TOSLatch.NOS, MCAdrLatch.ZERO],
 
     # ADD: 6
-    [ALULatch.ADD, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.ADD, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # SUB: 7
-    [ALULatch.SUB, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.SUB, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # MUL: 8
-    [ALULatch.MUL, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.MUL, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # DIV: 9
-    [ALULatch.DIV, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.DIV, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # MOD: 10
-    [ALULatch.MOD, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.MOD, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # AND: 11
-    [ALULatch.AND, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.AND, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # OR: 12
-    [ALULatch.OR, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.OR, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # NOT: 13
-    [ALULatch.NOT, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.NOT, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # NEG: 14
-    [ALULatch.NEG, TOSLatch.ALU, Instruction.INC, MCAdrLatch.ZERO],
+    [ALULatch.NEG, TOSLatch.ALU, MCAdrLatch.ZERO],
 
     # DUP: 15
-    [DSLatch.PUSH, Instruction.INC, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, MCAdrLatch.ZERO],
 
     # DROP: 16
-    [TOSLatch.NOS, MCAdrLatch.INC],
-    [Instruction.INC, MCAdrLatch.ZERO],
+    [TOSLatch.NOS, MCAdrLatch.ZERO],
 
-    # SWAP:
-    # [BRLatch.TOS, TOSLatch.NOS, MCAdrLatch.INC],
-    # [DSLatch.PUSH_BR, Instruction.INC, MCAdrLatch.ZERO],
+    # CMP: 17
+    [ALULatch.SUB, TOSLatch.NOS, MCAdrLatch.ZERO],
 
-    # CMP: 18
-    [ALULatch.SUB, TOSLatch.NOS, Instruction.INC, MCAdrLatch.ZERO],
+    # JMP: 18
+    [JUMP.JMP, MCAdrLatch.ZERO],
 
-    # JMP: 19
-    [JUMP.JMP, Instruction.INC, MCAdrLatch.ZERO],
+    # JZ: 19
+    [JUMP.JZ, MCAdrLatch.ZERO],
 
-    # JZ: 20
-    [JUMP.JZ, Instruction.INC, MCAdrLatch.ZERO],
+    # JN: 20
+    [JUMP.JN, MCAdrLatch.ZERO],
 
-    # JN: 21
-    [JUMP.JN, Instruction.INC, MCAdrLatch.ZERO],
+    # IN: 21
+    [NOSLatch.TOS, TOSLatch.INPUT, MCAdrLatch.ZERO],
 
-    # IN: 22
-    [DSLatch.PUSH, TOSLatch.INPUT, Instruction.INC, MCAdrLatch.ZERO],
+    # OUT: 22
+    [IOLatch.OUT, MCAdrLatch.INC],
+    [TOSLatch.NOS, TOSLatch.NOS, MCAdrLatch.ZERO],
 
-    # OUT: 23
-    [IOLatch.OUT, TOSLatch.NOS, MCAdrLatch.INC],
-    [TOSLatch.NOS, Instruction.INC, MCAdrLatch.ZERO],
-
-    # HALT: 25
+    # HALT: 24
     [PROG.HALT],
 
-    # CALL addr: 26
+    # CALL addr: 25
     [RSLatch.PC, MCAdrLatch.INC],
-    [JUMP.JMP, Instruction.INC, MCAdrLatch.ZERO],
+    [JUMP.JMP, MCAdrLatch.ZERO],
 
-    # RET: 28
-    [PCLatch.RS, Instruction.INC, MCAdrLatch.ZERO],
+    # RET: 27
+    [PCLatch.RS, MCAdrLatch.ZERO],
+
+    # NEXT addr: 28
+    [JUMP.NEXT, MCAdrLatch.ZERO],
+
+    # TORS: 29
+    [RSLatch.TOS, TOSLatch.NOS, MCAdrLatch.ZERO],
+
+    # FROMRS: 30
+    [NOSLatch.TOS, TOSLatch.RS, MCAdrLatch.ZERO],
+
+    # SWAP: 31
+    [RSLatch.TOS, TOSLatch.NOS, MCAdrLatch.INC],
+    [NOSLatch.RS, MCAdrLatch.ZERO],
 ]
 
 microcode = [encode_mc(step) for step in microcode]
-print(microcode)

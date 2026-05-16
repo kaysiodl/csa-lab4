@@ -124,9 +124,11 @@ class DataPath:
         elif sel == TOSLatch.RS:
             self.tos = self.return_stack.pop()
 
-    def signal_stack_ops(self, sel: DSLatch):
-        if sel == DSLatch.PUSH:
+    def signal_stack_ops(self, sel: NOSLatch):
+        if sel == NOSLatch.TOS:
             self.data_stack.push(self.tos)
+        elif sel == NOSLatch.RS:
+            self.data_stack.push(self.return_stack.pop())
 
     def signal_return_stack(self, sel: RSLatch):
         if sel == RSLatch.PC:
@@ -163,7 +165,7 @@ class DataPath:
     def signal_io(self, sel: IOLatch):
         if sel == IOLatch.OUT:
             port = self.tos
-            value = self.data_stack.peek()
+            value = self.data_stack.pop()
             self.io_controller.write(port, value)
 
     def signal_jump(self, sel: JUMP):
@@ -176,6 +178,13 @@ class DataPath:
         elif sel == JUMP.JN:
             if self.alu.neg_flag:
                 self.pc = decoded["arg"]
+        elif sel == JUMP.NEXT:
+            top = self.return_stack.peek()
+            if top == 0:
+                self.return_stack.pop()
+            else:
+                self.return_stack.return_stack[-1] -= 1
+                self.pc = decoded["arg"] & 0x07FF_FFFF
 
     def check_zero(self):
         return self.alu.zero_flag or self.tos == 0

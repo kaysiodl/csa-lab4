@@ -5,7 +5,7 @@ from datapath import DataPath
 from isa import decode
 from microcode import microcode, op2microcode, decode_mc
 from signals_cpu import (
-    ALULatch, ARLatch, DSLatch, Instruction, IOLatch,
+    ALULatch, ARLatch, NOSLatch, IOLatch,
     JUMP, MCAdrLatch, MEMSignal, PCLatch, PROG, RSLatch, TOSLatch,
 )
 
@@ -34,14 +34,13 @@ class ControlUnit:
             RSLatch:     (dp.signal_return_stack, True),
             ARLatch:     (dp.signal_latch_ar,     True),
             MEMSignal:   (dp.signal_mem,          True),
-            DSLatch:     (dp.signal_stack_ops,    True),
+            NOSLatch:     (dp.signal_stack_ops,    True),
             ALULatch:    (dp.signal_alu_op,       True),
             TOSLatch:    (dp.signal_latch_tos,    True),
             IOLatch:     (dp.signal_io,           True),
             PCLatch:     (dp.signal_latch_pc,     True),
             JUMP:        (dp.signal_jump,         True),
             MCAdrLatch:  (self._latch_mc_adr,     True),
-            Instruction: (self._inc_instruction,  False),
         }
 
     def _latch_mc_adr(self, signal: MCAdrLatch):
@@ -83,16 +82,16 @@ class ControlUnit:
         signals = decode_mc(mc_word)
         sig_str  = ", ".join(f"{type(s).__name__}.{s.name}" for s in signals)
         cr_info  = decode(dp.cr) if dp.cr else {}
-        opcode_s = str(cr_info.get("opcode", "HALT"))
+        opcode_s = str(cr_info.get("opcode", "Opcode.HALT"))
         return (
             "TICK:{:4d} | PC:{:3d} | AR:{:3d} | mc:{:2d} | "
             "mc=0x{:07x} | CR:{:10s} | TOS:{:6} | "
-            "Z:{} N:{} |DS:{} RS:{} | [{}]"
+            "Z:{} N:{} | DS:{} | RS:{} | [{}]"
         ).format(
             self.tick, dp.pc, dp.ar, self.mc_adr,
-            mc_word, opcode_s, str(dp.tos),
+            mc_word, opcode_s[7:], str(dp.tos),
             int(dp.alu.zero_flag), int(dp.alu.neg_flag),
-            dp.data_stack.stack[-3:],
+            dp.data_stack.stack[-2:] + [dp.tos],
             dp.return_stack.return_stack[-3:],
             sig_str,
         )
