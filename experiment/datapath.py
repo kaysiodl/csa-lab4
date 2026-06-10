@@ -2,7 +2,6 @@ import logging
 from collections import deque
 
 from alu import ALU, ALU_OP
-from isa import decode
 from signals_cpu import *
 
 
@@ -36,12 +35,25 @@ class ReturnStack:
 
 class Memory:
     def __init__(self, size=65536):
-        self.memory = [0] * size
+        self.memory = bytearray(size)
         self.data_out = 0
 
-    def read(self, addr: int): self.data_out = self.memory[addr % len(self.memory)]
+    def read_byte(self, addr: int):
+        return self.memory[addr % len(self.memory)]
 
-    def write(self, addr: int, val: int): self.memory[addr % len(self.memory)] = val
+    def read_word(self, addr: int):
+        """Читает 4 байта little-endian,знаковый"""
+        b = [self.memory[(addr + i) % len(self.memory)] for i in range(4)]
+        val = b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)
+        if val >= 0x80000000:
+            val -= 0x100000000
+        return val
+
+    def write_word(self, addr: int, val: int):
+        """Пишет 4 байта little-endian."""
+        val = val & 0xFFFFFFFF
+        for i in range(4):
+            self.memory[(addr + i) % len(self.memory)] = (val >> (8 * i)) & 0xFF
 
 
 class IOUnit:
@@ -65,7 +77,7 @@ class IOController:
     def connect(self, port: int, unit: IOUnit):
         self._connected_units[port] = unit
 
-    def read(self, port: int) -> int:
+    def read(self, port: int):
         if port not in self._connected_units: raise Exception(f"No device on port {port}")
         return self._connected_units[port].read()
 
@@ -83,44 +95,50 @@ class DataPath:
         self.pc = 0
         self.ar = 0
         self.tos = 0
-        self.cr = 0
+        self.ir = 0
+        self.dr = 0
         self.memory = Memory(mem_size)
         self.data_stack = DataStack()
         self.return_stack = ReturnStack()
         self.alu = ALU()
         self.io_controller = io_controller
 
+    def signal_latch_ir(self, sel: IRLatch):
+        if sel == IRLatch.MEM:
+            self.ir = self.memory.data_out
+
+    def signal_latch_dr(self, sel: DRLatch):
+        if sel == DRLatch.MEM:
+            self.dr = self.memory.data_out
+
     def signal_latch_ar(self, sel: ARLatch):
         if sel == ARLatch.PC:
             self.ar = self.pc
         elif sel == ARLatch.TOS:
             self.ar = self.tos
-        elif sel == ARLatch.CR:
-            decoded = decode(self.cr)
-            self.ar = decoded["arg"] & 0x07FF_FFFF
+        elif sel == ARLatch.DR:
+            self.ar = self.dr
 
     def signal_latch_pc(self, sel: PCLatch):
-        if sel == PCLatch.INC:
-            self.pc = (self.pc + 1) & 0x07FF_FFFF
-        elif sel == PCLatch.CR:
-            decoded = decode(self.cr)
-            self.pc = decoded["arg"] & 0x07FF_FFFF
-        elif sel == PCLatch.RS:
-            self.pc = self.return_stack.pop()
+        match sel:
+            case PCLatch.INC:
+                self.pc += 1
+            case PCLatch.INC4:
+                self.pc += 4
+            case PCLatch.DR:
+                self.pc = self.dr
+            case PCLatch.RS:
+                self.pc = self.return_stack.pop()
 
     def signal_latch_tos(self, sel: TOSLatch):
-        if sel == TOSLatch.MEM:
-            self.tos = self.memory.data_out
-        elif sel == TOSLatch.ALU:
+        if sel == TOSLatch.ALU:
             self.tos = self.alu.result
         elif sel == TOSLatch.NOS:
             self.tos = self.data_stack.pop()
         elif sel == TOSLatch.INPUT:
-            port_address = self.tos
-            self.tos = self.io_controller.read(port_address)
-        elif sel == TOSLatch.CR:
-            decoded = decode(self.cr)
-            self.tos = decoded["arg"]
+            self.tos = self.io_controller.read(self.tos)
+        elif sel == TOSLatch.DR:
+            self.tos = self.dr
         elif sel == TOSLatch.RS:
             self.tos = self.return_stack.pop()
 
@@ -136,11 +154,7 @@ class DataPath:
         elif sel == RSLatch.TOS:
             self.return_stack.push(self.tos)
 
-    def signal_alu_op(self, op: ALULatch):
-        try:
-            op = ALU_OP(op.value)
-        except ValueError:
-            return
+    def signal_alu_op(self, op: ALU_OP):
         unary = {ALU_OP.NOT, ALU_OP.NEG, ALU_OP.INC}
         if op not in unary:
             self.alu.first = self.data_stack.peek()
@@ -148,19 +162,18 @@ class DataPath:
         else:
             self.alu.first = self.tos
             self.alu.second = 0
-        if op in ALU_OP:
-            self.alu.compute(op)
-        if op not in unary and self.data_stack.stack:
+        self.alu.compute(op)
+        if op not in unary and self.data_stack.stack and op != ALU_OP.CMP:
             self.data_stack.pop()
 
     def signal_mem(self, sel: MEMSignal):
-        if sel == MEMSignal.READ_CR:
-            self.memory.read(self.ar)
-            self.cr = self.memory.data_out
-        if sel == MEMSignal.READ_TOS:
-            self.memory.read(self.ar)
-        elif sel == MEMSignal.WRITE:
-            self.memory.write(self.ar, self.tos)
+        match sel:
+            case MEMSignal.READ_BYTE:
+                self.memory.data_out = self.memory.read_byte(self.ar)
+            case MEMSignal.READ_WORD:
+                self.memory.data_out = self.memory.read_word(self.ar)
+            case MEMSignal.WRITE_WORD:
+                self.memory.write_word(self.ar, self.tos)
 
     def signal_io(self, sel: IOLatch):
         if sel == IOLatch.OUT:
@@ -169,25 +182,17 @@ class DataPath:
             self.io_controller.write(port, value)
 
     def signal_jump(self, sel: JUMP):
-        decoded = decode(self.cr)
         if sel == JUMP.JMP:
-            self.pc = decoded["arg"] & 0x07FF_FFFF
+            self.pc = self.dr
         elif sel == JUMP.JZ:
             if self.alu.zero_flag:
-                self.pc = decoded["arg"] & 0x07FF_FFFF
+                self.pc = self.dr
         elif sel == JUMP.JN:
             if self.alu.neg_flag:
-                self.pc = decoded["arg"]
+                self.pc = self.dr
         elif sel == JUMP.NEXT:
-            top = self.return_stack.peek()
-            if top == 0:
+            self.return_stack.return_stack[-1] -= 1
+            if self.return_stack.peek() == 0:
                 self.return_stack.pop()
             else:
-                self.return_stack.return_stack[-1] -= 1
-                self.pc = decoded["arg"] & 0x07FF_FFFF
-
-    def check_zero(self):
-        return self.alu.zero_flag or self.tos == 0
-
-    def check_negative(self):
-        return self.alu.neg_flag or self.tos < 0
+                self.pc = self.dr

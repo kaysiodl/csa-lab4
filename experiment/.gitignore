@@ -1,5 +1,6 @@
 .venv/
 .idea/
 tests/
-test_cpu
 __pycache__/
+main.py
+test_cpu.py

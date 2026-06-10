@@ -30,13 +30,22 @@ class Opcode(Enum):
     NEXT = 0b11001
     TORS = 0b11010
     FROMRS = 0b11011
+    LOAD = 0b11100
+    STORE = 0b11101
 
-def encode(opcode: Opcode, arg: int = 0) -> int:
-    return (opcode.value << 27) | (arg & 0x07FF_FFFF)
+
+HAS_OPERAND = {
+    Opcode.PUSH, Opcode.POP, Opcode.PUSHC,
+    Opcode.JMP, Opcode.JZ, Opcode.JN,
+    Opcode.CALL, Opcode.NEXT,
+}
 
 
-def decode(word: int) -> dict:
-    opcode_bits = (word >> 27) & 0x1F
-    arg_bits = word & 0x07FF_FFFF
-    if arg_bits >= (1 << 26): arg_bits -= (1 << 27)
-    return {"opcode": Opcode(opcode_bits), "arg": arg_bits, "raw": word}
+def encode(opcode: Opcode):
+    return opcode.value
+
+
+def decode(word: int):
+    opcode_bits = word & 0x1F
+    has_operand = True if Opcode(opcode_bits) in HAS_OPERAND else False
+    return {"opcode": Opcode(opcode_bits), "has_operand": has_operand}

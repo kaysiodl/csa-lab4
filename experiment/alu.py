@@ -9,10 +9,10 @@ class ALU_OP(Enum):
     AND = 5
     OR = 6
     NOT = 7
-    PASS_FIRST = 8
-    NEG = 9
-    INC = 10
-    MOD = 11
+    NEG = 8
+    INC = 9
+    MOD = 10
+    CMP = 11
 
 
 class ALU:
@@ -21,7 +21,6 @@ class ALU:
         self.zero_flag = False
         self.neg_flag = False
         self.carry_flag = False
-        self.overflow_flag = False
         self.first = 0
         self.second = 0
 
@@ -42,18 +41,18 @@ class ALU:
                 self.result = self.first | self.second
             case ALU_OP.NOT:
                 self.result = ~self.first
-            case ALU_OP.PASS_FIRST:
-                self.result = self.first
             case ALU_OP.NEG:
                 self.result = 0 - self.first
             case ALU_OP.INC:
                 self.result = self.first + 1
             case ALU_OP.MOD:
                 self.result = self.first % self.second
+            case ALU_OP.CMP:
+                self.result = self.first - self.second
         self.zero_flag = False
         self.neg_flag = False
         self.carry_flag = False
-        if self.result > 0x7FF: self.carry_flag = True
+        if self.result > 0x7FFFFFFF: self.carry_flag = True
         if self.result == 0: self.zero_flag = True
         if self.result < 0: self.neg_flag = True
         self.result = self._to_int32(self.result)
@@ -64,6 +63,3 @@ class ALU:
         val = val & 0xFFFFFFFF
         if val >= 0x80000000: val -= 0x100000000
         return val
-
-
-

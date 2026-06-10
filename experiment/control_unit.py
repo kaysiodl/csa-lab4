@@ -1,15 +1,16 @@
 import logging
 from typing import ClassVar
 
+from alu import ALU_OP
 from datapath import DataPath
-from isa import decode
+from isa import Opcode
 from microcode import microcode, op2microcode, decode_mc
 from signals_cpu import (
-    ALULatch, ARLatch, NOSLatch, IOLatch,
+    ARLatch, NOSLatch, IOLatch, DRLatch, IRLatch,
     JUMP, MCAdrLatch, MEMSignal, PCLatch, PROG, RSLatch, TOSLatch,
 )
 
-INSTRUCTION_LIMIT = 1_000
+INSTRUCTION_LIMIT = 1_00
 
 
 class InvalidSignalError(Exception):
@@ -28,48 +29,48 @@ class ControlUnit:
         self.datapath = datapath
         self.tick = 0
         self.instruction_count = 0
-
         dp = self.datapath
-        self.signal_handlers: dict[type, tuple] = {
-            RSLatch:     (dp.signal_return_stack, True),
-            ARLatch:     (dp.signal_latch_ar,     True),
-            MEMSignal:   (dp.signal_mem,          True),
-            NOSLatch:     (dp.signal_stack_ops,    True),
-            ALULatch:    (dp.signal_alu_op,       True),
-            TOSLatch:    (dp.signal_latch_tos,    True),
-            IOLatch:     (dp.signal_io,           True),
-            PCLatch:     (dp.signal_latch_pc,     True),
-            JUMP:        (dp.signal_jump,         True),
-            MCAdrLatch:  (self._latch_mc_adr,     True),
+        self.signal_handlers: dict[type] = {
+            RSLatch: dp.signal_return_stack,
+            ARLatch: dp.signal_latch_ar,
+            MEMSignal: dp.signal_mem,
+            IRLatch: dp.signal_latch_ir,
+            DRLatch: dp.signal_latch_dr,
+            NOSLatch: dp.signal_stack_ops,
+            ALU_OP: dp.signal_alu_op,
+            TOSLatch: dp.signal_latch_tos,
+            IOLatch: dp.signal_io,
+            PCLatch: dp.signal_latch_pc,
+            JUMP: dp.signal_jump,
+            MCAdrLatch: self._latch_mc_adr,
         }
 
     def _latch_mc_adr(self, signal: MCAdrLatch):
         match signal:
-            case MCAdrLatch.ZERO:  self.mc_adr = 0
-            case MCAdrLatch.INC:   self.mc_adr += 1
+            case MCAdrLatch.ZERO:
+                self.mc_adr = 0
+                self.instruction_count += 1
+            case MCAdrLatch.INC:
+                self.mc_adr += 1
             case MCAdrLatch.INPUT:
-                opcode = decode(self.datapath.cr)["opcode"]
+                opcode = Opcode(self.datapath.ir)
                 self.mc_adr = op2microcode(opcode)
-
-    def _inc_instruction(self):
-        self.instruction_count += 1
 
     def execute_micro(self, mc_word: int):
         signals = decode_mc(mc_word)
         for signal in signals:
             if signal == PROG.HALT:
                 raise StopIteration("HALT")
-            handler_entry = self.signal_handlers.get(type(signal))
-            if handler_entry is None:
+            handler = self.signal_handlers.get(type(signal))
+            if handler is None:
                 raise InvalidSignalError(f"Unknown signal: {signal!r}")
-            method, needs_arg = handler_entry
-            method(signal) if needs_arg else method()
+            handler(signal)
         logging.debug("%s", self._repr_state(mc_word))
         self.tick += 1
 
     def run_machine(self):
         try:
-            while self.instruction_count < INSTRUCTION_LIMIT:
+            while True:
                 self.execute_micro(microcode[self.mc_adr])
         except StopIteration:
             pass
@@ -80,16 +81,18 @@ class ControlUnit:
     def _repr_state(self, mc_word: int) -> str:
         dp = self.datapath
         signals = decode_mc(mc_word)
-        sig_str  = ", ".join(f"{type(s).__name__}.{s.name}" for s in signals)
-        cr_info  = decode(dp.cr) if dp.cr else {}
-        opcode_s = str(cr_info.get("opcode", "Opcode.HALT"))
+        sig_str = ", ".join(f"{type(s).__name__}.{s.name}" for s in signals)
+        try:
+            opcode_s = Opcode(dp.ir).name
+        except ValueError:
+            opcode_s = f"0x{dp.ir:02x}"
         return (
             "TICK:{:4d} | PC:{:3d} | AR:{:3d} | mc:{:2d} | "
-            "mc=0x{:07x} | CR:{:10s} | TOS:{:6} | "
+            "mc=0x{:07x} | IR:{:10s} | DR:{:6} | TOS:{:6} | "
             "Z:{} N:{} | DS:{} | RS:{} | [{}]"
         ).format(
             self.tick, dp.pc, dp.ar, self.mc_adr,
-            mc_word, opcode_s[7:], str(dp.tos),
+            mc_word, opcode_s, str(dp.dr), str(dp.tos),
             int(dp.alu.zero_flag), int(dp.alu.neg_flag),
             dp.data_stack.stack[-2:] + [dp.tos],
             dp.return_stack.return_stack[-3:],
