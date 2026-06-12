@@ -47,5 +47,21 @@ def encode(opcode: Opcode):
 
 def decode(word: int):
     opcode_bits = word & 0x1F
-    has_operand = True if Opcode(opcode_bits) in HAS_OPERAND else False
+    has_operand = Opcode(opcode_bits) in HAS_OPERAND
     return {"opcode": Opcode(opcode_bits), "has_operand": has_operand}
+
+
+def disasm(code) -> str:
+    lines = []
+    i = 0
+    while i < len(code):
+        op = Opcode(code[i])
+        if op in HAS_OPERAND:
+            raw = bytes(code[i:i + 5])
+            operand = int.from_bytes(code[i + 1:i + 5], "little", signed=True)
+            lines.append(f"{i:04x} - {raw.hex()} - {op.name} 0x{operand & 0xFFFFFFFF:x}")
+            i += 5
+        else:
+            lines.append(f"{i:04x} - {code[i]:02x}{' ' * 8} - {op.name}")
+            i += 1
+    return "\n".join(lines)

@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+exclude = ["test_cpu.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true

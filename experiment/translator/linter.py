@@ -1,8 +1,24 @@
 from dataclasses import dataclass
 
 from translator.nodes import (
-    Const, Str, Name, BinOp, Compare, Var, Set, If, While, Def, Call,
-    Print, Read, ReadStr, Len, Array, ARef, ASet,
+    ARef,
+    Array,
+    ASet,
+    BinOp,
+    Call,
+    Compare,
+    Const,
+    Def,
+    If,
+    Len,
+    Name,
+    Print,
+    Read,
+    ReadStr,
+    Set,
+    Str,
+    Var,
+    While,
 )
 
 VAR_BASE = 0x1000
@@ -36,10 +52,10 @@ def type_of(node, var_types: dict, param: str | None) -> str:
 
 
 def lint(ast: list):
-    variables = {}
-    var_types = {}
-    functions = {}
-    strings = {}
+    variables: dict = {}
+    var_types: dict = {}
+    functions: dict = {}
+    strings: dict = {}
     var_next = VAR_BASE
     str_next = STR_BASE
 

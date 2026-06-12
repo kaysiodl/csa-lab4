@@ -2,35 +2,53 @@ import logging
 from collections import deque
 
 from alu import ALU, ALU_OP
-from signals_cpu import *
+from signals_cpu import (
+    JUMP,
+    ARLatch,
+    DRLatch,
+    IOLatch,
+    IRLatch,
+    MEMSignal,
+    NOSLatch,
+    PCLatch,
+    RSLatch,
+    TOSLatch,
+)
 
 
 class DataStack:
     def __init__(self):
         self.stack: list[int] = []
 
-    def push(self, val: int): self.stack.append(val)
+    def push(self, val: int):
+        self.stack.append(val)
 
     def pop(self):
-        if not self.stack: raise IndexError("Data stack underflow")
+        if not self.stack:
+            raise IndexError("Data stack underflow")
         return self.stack.pop()
 
-    def peek(self): return self.stack[-1] if self.stack else 0
+    def peek(self):
+        return self.stack[-1] if self.stack else 0
 
 
 class ReturnStack:
     def __init__(self):
         self.return_stack: list[int] = []
 
-    def push(self, addr: int): self.return_stack.append(addr)
+    def push(self, addr: int):
+        self.return_stack.append(addr)
 
     def pop(self):
-        if not self.return_stack: raise IndexError("Return stack underflow")
+        if not self.return_stack:
+            raise IndexError("Return stack underflow")
         return self.return_stack.pop()
 
-    def peek(self): return self.return_stack[-1] if self.return_stack else 0
+    def peek(self):
+        return self.return_stack[-1] if self.return_stack else 0
 
-    def __repr__(self): return str(self.return_stack)
+    def __repr__(self):
+        return str(self.return_stack)
 
 
 class Memory:
@@ -62,12 +80,15 @@ class IOUnit:
         self._output_buffer: deque = deque()
 
     def read(self):
-        if not self._input_buffer: raise IOError("No input to read")
+        if not self._input_buffer:
+            raise OSError("No input to read")
         return self._input_buffer.popleft()
 
-    def write(self, value: int): self._output_buffer.append(value)
+    def write(self, value: int):
+        self._output_buffer.append(value)
 
-    def get_list_output(self) -> list: return list(self._output_buffer)
+    def get_list_output(self) -> list:
+        return list(self._output_buffer)
 
 
 class IOController:
@@ -78,11 +99,13 @@ class IOController:
         self._connected_units[port] = unit
 
     def read(self, port: int):
-        if port not in self._connected_units: raise Exception(f"No device on port {port}")
+        if port not in self._connected_units:
+            raise Exception(f"No device on port {port}")
         return self._connected_units[port].read()
 
     def write(self, port: int, value: int):
-        if port not in self._connected_units: raise Exception(f"No device on port {port}")
+        if port not in self._connected_units:
+            raise Exception(f"No device on port {port}")
         if 32 <= value <= 126:
             logging.debug("Output: `%s` (%d) on port %d", chr(value), value, port)
         else:

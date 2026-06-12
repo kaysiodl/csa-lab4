@@ -8,13 +8,11 @@ from pathlib import Path
 import pytest
 import yaml
 from codegen import build_memory, codegen
-from linter import lint
-from nodes import Node
-from parser import parse, tokenize
-
 from control_unit import ControlUnit
 from datapath import DataPath, IOController, IOUnit
-from isa import HAS_OPERAND, Opcode
+from isa import disasm
+from linter import lint
+from parser import parse, tokenize
 
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
 LOG_LIMIT = 10_000
@@ -102,21 +100,6 @@ def _render(value, lines, prefix, last, label):
     else:
         lines.append(prefix + branch + f"{label}: {value!r}")
 
-
-def disasm(code: bytearray) -> str:
-    lines = []
-    i = 0
-    while i < len(code):
-        op = Opcode(code[i])
-        if op in HAS_OPERAND:
-            raw = code[i:i + 5]
-            operand = int.from_bytes(code[i + 1:i + 5], "little", signed=True)
-            lines.append(f"{i:04x} - {raw.hex()} - {op.name} 0x{operand & 0xFFFFFFFF:x}")
-            i += 5
-        else:
-            lines.append(f"{i:04x} - {code[i]:02x}{' ' * 8} - {op.name}")
-            i += 1
-    return "\n".join(lines)
 
 class FlowList(list):
     pass

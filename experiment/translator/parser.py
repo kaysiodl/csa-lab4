@@ -2,8 +2,24 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 from translator.nodes import (
-    Const, Str, Name, BinOp, Compare, Var, Set, If, While, Def, Call,
-    Print, Read, ReadStr, Len, Array, ARef, ASet,
+    ARef,
+    Array,
+    ASet,
+    BinOp,
+    Call,
+    Compare,
+    Const,
+    Def,
+    If,
+    Len,
+    Name,
+    Print,
+    Read,
+    ReadStr,
+    Set,
+    Str,
+    Var,
+    While,
 )
 
 

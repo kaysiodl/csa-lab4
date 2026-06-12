@@ -1,6 +1,19 @@
 from alu import ALU_OP
 from isa import Opcode
-from signals_cpu import *
+from signals_cpu import (
+    JUMP,
+    PROG,
+    ARLatch,
+    DRLatch,
+    IOLatch,
+    IRLatch,
+    MCAdrLatch,
+    MEMSignal,
+    NOSLatch,
+    PCLatch,
+    RSLatch,
+    TOSLatch,
+)
 
 
 def op2microcode(op: Opcode) -> int:
@@ -84,50 +97,53 @@ def decode_mc(mc: int) -> list:
     return result
 
 
-microcode = [
-    # FETCH: 0, читаем байт опкода
+FETCH_TAIL = [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+
+
+_steps: list[list] = [
+    # FETCH: 0, читаем байт опкода (старт + после переходов/LOAD/STORE)
     [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT],
 
     # PUSHC: 1, читаем 4-байтный операнд, кладём его на стек
     [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC],
-    [NOSLatch.TOS, TOSLatch.DR, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, TOSLatch.DR, *FETCH_TAIL],
 
     # PUSH: 3, читаем адрес, потом читаем слово по адресу
     [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC],
     [ARLatch.DR, MEMSignal.READ_WORD, DRLatch.MEM, MCAdrLatch.INC],
-    [NOSLatch.TOS, TOSLatch.DR, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, TOSLatch.DR, *FETCH_TAIL],
 
     # POP: 6, читаем адрес, пишем TOS по адресу
     [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC],
     [ARLatch.DR, MEMSignal.WRITE_WORD, MCAdrLatch.INC],
-    [TOSLatch.NOS, MCAdrLatch.ZERO],
+    [TOSLatch.NOS, *FETCH_TAIL],
 
     # ADD: 9
-    [ALU_OP.ADD, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.ADD, TOSLatch.ALU, *FETCH_TAIL],
     # SUB: 10
-    [ALU_OP.SUB, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.SUB, TOSLatch.ALU, *FETCH_TAIL],
     # MUL: 11
-    [ALU_OP.MUL, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.MUL, TOSLatch.ALU, *FETCH_TAIL],
     # DIV: 12
-    [ALU_OP.DIV, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.DIV, TOSLatch.ALU, *FETCH_TAIL],
     # MOD: 13
-    [ALU_OP.MOD, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.MOD, TOSLatch.ALU, *FETCH_TAIL],
     # AND: 14
-    [ALU_OP.AND, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.AND, TOSLatch.ALU, *FETCH_TAIL],
     # OR: 15
-    [ALU_OP.OR, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.OR, TOSLatch.ALU, *FETCH_TAIL],
     # NOT: 16
-    [ALU_OP.NOT, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.NOT, TOSLatch.ALU, *FETCH_TAIL],
     # NEG: 17
-    [ALU_OP.NEG, TOSLatch.ALU, MCAdrLatch.ZERO],
+    [ALU_OP.NEG, TOSLatch.ALU, *FETCH_TAIL],
     # DUP: 18
-    [NOSLatch.TOS, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, *FETCH_TAIL],
     # DROP: 19
-    [TOSLatch.NOS, MCAdrLatch.ZERO],
+    [TOSLatch.NOS, *FETCH_TAIL],
     # CMP: 20
-    [ALU_OP.CMP, MCAdrLatch.ZERO],
+    [ALU_OP.CMP, *FETCH_TAIL],
 
-    # JMP: 21
+    # JMP: 21 (без префетча — меняем PC)
     [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC],
     [JUMP.JMP, MCAdrLatch.ZERO],
 
@@ -140,43 +156,43 @@ microcode = [
     [JUMP.JN, MCAdrLatch.ZERO],
 
     # IN: 27
-    [NOSLatch.TOS, TOSLatch.INPUT, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, TOSLatch.INPUT, *FETCH_TAIL],
 
     # OUT: 28
     [IOLatch.OUT, MCAdrLatch.INC],
-    [TOSLatch.NOS, MCAdrLatch.ZERO],
+    [TOSLatch.NOS, *FETCH_TAIL],
 
     # HALT: 30
     [PROG.HALT],
 
-    # CALL: 31
+    # CALL: 31 (без префетча — меняем PC)
     [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC],
     [RSLatch.PC, MCAdrLatch.INC],
     [JUMP.JMP, MCAdrLatch.ZERO],
 
-    # RET: 34
+    # RET: 34 (без префетча — меняем PC)
     [PCLatch.RS, MCAdrLatch.ZERO],
 
-    # NEXT: 35
+    # NEXT: 35 (без префетча — может менять PC)
     [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC],
     [JUMP.NEXT, MCAdrLatch.ZERO],
 
     # TORS: 37
-    [RSLatch.TOS, TOSLatch.NOS, MCAdrLatch.ZERO],
+    [RSLatch.TOS, TOSLatch.NOS, *FETCH_TAIL],
     # FROMRS: 38
-    [NOSLatch.TOS, TOSLatch.RS, MCAdrLatch.ZERO],
+    [NOSLatch.TOS, TOSLatch.RS, *FETCH_TAIL],
 
     # SWAP: 39
     [RSLatch.TOS, MCAdrLatch.INC],
     [TOSLatch.NOS, MCAdrLatch.INC],
-    [NOSLatch.RS,  MCAdrLatch.ZERO],
+    [NOSLatch.RS, *FETCH_TAIL],
 
-    # LOAD: 42
+    # LOAD: 42 (без префетча — лезет в память)
     [ARLatch.TOS, MEMSignal.READ_WORD, DRLatch.MEM, TOSLatch.DR, MCAdrLatch.ZERO],
 
-    # STORE: 43
+    # STORE: 43 (без префетча — лезет в память)
     [ARLatch.TOS, TOSLatch.NOS, MCAdrLatch.INC],
     [MEMSignal.WRITE_WORD, MCAdrLatch.ZERO],
 ]
 
-microcode = [encode_mc(step) for step in microcode]
+microcode: list[int] = [encode_mc(step) for step in _steps]

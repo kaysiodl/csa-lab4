@@ -1,8 +1,25 @@
 from isa import Opcode
+
 from translator.linter import Symbols, type_of
 from translator.nodes import (
-    Const, Str, Name, BinOp, Compare, Var, Set, If, While, Def, Call,
-    Print, Read, ReadStr, Len, Array, ARef, ASet,
+    ARef,
+    Array,
+    ASet,
+    BinOp,
+    Call,
+    Compare,
+    Const,
+    Def,
+    If,
+    Len,
+    Name,
+    Print,
+    Read,
+    ReadStr,
+    Set,
+    Str,
+    Var,
+    While,
 )
 
 PARAM_ADDR = 0x0F00
@@ -26,7 +43,7 @@ def codegen(ast: list, sym: Symbols) -> bytearray:
     code = bytearray()
     call_fixups = []
     func_addr = {}
-    buffers = {}
+    buffers: dict = {}
     state = {"buf_next": BUF_BASE, "print_str": False, "read_str": False}
 
     def emit(op):

@@ -27,43 +27,37 @@
 Основан на S-выражениях: весь код представляется в виде списков. Каждое выражение записывается в круглых скобках, где первый элемент - оператор или имя функции, а остальные - его аргументы.
 Ниже приведена формальная грамматика языка в нотации Бэкуса-Наура, задающая допустимые конструкции программ.
 ```
-<program> ::= <expr_list>
-
-<expr_list> ::= <expr> | <expr> <expr_list>
+<program> ::= <expr> | <expr> <program>
 
 <expr> ::= <number>
          | <string>
          | <identifier>
-         | "(" <operator> <expr_list> ")"
-         | "(" <comparison_operator> <expr> <expr> ")"
+         | "(" <operator> <expr> <expr> ")"
+         | "(" <comparison> <expr> <expr> ")"
          | "(" "var" <identifier> <expr> ")"
+         | "(" "var" <identifier> "(" "array" <number> ")" ")"
          | "(" "set" <identifier> <expr> ")"
          | "(" "if" <expr> <expr> <expr> ")"
-         | "(" "while" <expr> <expr_list> ")"
-         | "(" "def" <identifier> "(" <param_list_opt> ")" <expr_list> ")"
-         | "(" "call" <identifier> <arg_list_opt> ")"
+         | "(" "while" <expr> <body> ")"
+         | "(" "def" <identifier> "(" <identifier> ")" <body> ")"
+         | "(" "call" <identifier> <expr> ")"
          | "(" "print" <expr> ")"
          | "(" "read" ")"
          | "(" "read_str" ")"
          | "(" "len" <expr> ")"
+         | "(" "aref" <identifier> <expr> ")"
+         | "(" "aset" <identifier> <expr> <expr> ")"
 
-<operator> ::= "+" | "-" | "*" | "/"
+<body> ::= <expr> | <expr> <body>
 
-<comparison_operator> ::= ">" | "<" | "=" | "!="
+<operator>   ::= "+" | "-" | "*" | "/" | "%"
+<comparison> ::= ">" | "<" | "=" | "!="
 
-<param_list_opt> ::= <param_list> | ε
-<param_list> ::= <identifier> | <identifier> <param_list>
+<identifier> ::= <letter> <ident_tail>
+<ident_tail> ::= ε | <letter> <ident_tail> | <digit> <ident_tail> | "_" <ident_tail>
 
-<arg_list_opt> ::= <arg_list> | ε
-<arg_list> ::= <expr> | <expr> <arg_list>
-
-<identifier> ::= <letter> <identifier_tail_opt>
-<identifier_tail_opt> ::= <identifier_tail> | ε
-<identifier_tail> ::= <letter> | <digit> | <identifier_tail>
-
-<string> ::= "\"" <string_content_opt> "\""
-<string_content_opt> ::= <string_content> | ε
-<string_content> ::= <character> | <character> <string_content>
+<string> ::= "\"" <chars> "\""
+<chars>  ::= ε | <character> <chars>
 
 <number> ::= <digit> | <digit> <number>
 <character> ::= <letter> | <digit> | " " | "," | "!" | "?"

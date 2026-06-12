@@ -1,0 +1,221 @@
+in_source: |-
+  (var x 0)
+  (print (set x 13))
+  (print (if (> x 10) 100 200))
+  (var y (if (= x 13) 7 9))
+  (print y)
+  (print (+ 1 (* 2 (- 10 3))))
+in_buffer: []
+in_limit: 100000
+out_stdout: |-
+  ticks: 103
+  instr: 59
+  output_words: 4
+  output_hex: ['0xd', '0x64', '0x7', '0xf']
+  output_num: [13, 100, 7, 15]
+  output_text: '\\x0dd\\x07\\x0f'
+out_ast: |-
+  Program
+  ├─ top_levels[0]: Var  name='x'
+  │  └─ expr: Const  value=0
+  ├─ top_levels[1]: Print
+  │  └─ arg: Set  name='x'
+  │     └─ expr: Const  value=13
+  ├─ top_levels[2]: Print
+  │  └─ arg: If
+  │     ├─ cond: Compare  op='>'
+  │     │  ├─ left: Name  name='x'
+  │     │  └─ right: Const  value=10
+  │     ├─ then: Const  value=100
+  │     └─ els: Const  value=200
+  ├─ top_levels[3]: Var  name='y'
+  │  └─ expr: If
+  │     ├─ cond: Compare  op='='
+  │     │  ├─ left: Name  name='x'
+  │     │  └─ right: Const  value=13
+  │     ├─ then: Const  value=7
+  │     └─ els: Const  value=9
+  ├─ top_levels[4]: Print
+  │  └─ arg: Name  name='y'
+  └─ top_levels[5]: Print
+     └─ arg: BinOp  op='+'
+        ├─ left: Const  value=1
+        └─ right: BinOp  op='*'
+           ├─ left: Const  value=2
+           └─ right: BinOp  op='-'
+              ├─ left: Const  value=10
+              └─ right: Const  value=3
+out_code_hex: |-
+  0000 - 0300000000 - PUSHC 0x0
+  0005 - 15         - DUP
+  0006 - 0200100000 - POP 0x1000
+  000b - 16         - DROP
+  000c - 030d000000 - PUSHC 0xd
+  0011 - 15         - DUP
+  0012 - 0200100000 - POP 0x1000
+  0017 - 15         - DUP
+  0018 - 0301000000 - PUSHC 0x1
+  001d - 14         - OUT
+  001e - 16         - DROP
+  001f - 030a000000 - PUSHC 0xa
+  0024 - 0100100000 - PUSH 0x1000
+  0029 - 0f         - CMP
+  002a - 16         - DROP
+  002b - 16         - DROP
+  002c - 123b000000 - JN 0x3b
+  0031 - 0300000000 - PUSHC 0x0
+  0036 - 1040000000 - JMP 0x40
+  003b - 0301000000 - PUSHC 0x1
+  0040 - 0d         - NEG
+  0041 - 16         - DROP
+  0042 - 1151000000 - JZ 0x51
+  0047 - 0364000000 - PUSHC 0x64
+  004c - 1056000000 - JMP 0x56
+  0051 - 03c8000000 - PUSHC 0xc8
+  0056 - 15         - DUP
+  0057 - 0301000000 - PUSHC 0x1
+  005c - 14         - OUT
+  005d - 16         - DROP
+  005e - 0100100000 - PUSH 0x1000
+  0063 - 030d000000 - PUSHC 0xd
+  0068 - 0f         - CMP
+  0069 - 16         - DROP
+  006a - 16         - DROP
+  006b - 117a000000 - JZ 0x7a
+  0070 - 0300000000 - PUSHC 0x0
+  0075 - 107f000000 - JMP 0x7f
+  007a - 0301000000 - PUSHC 0x1
+  007f - 0d         - NEG
+  0080 - 16         - DROP
+  0081 - 1190000000 - JZ 0x90
+  0086 - 0307000000 - PUSHC 0x7
+  008b - 1095000000 - JMP 0x95
+  0090 - 0309000000 - PUSHC 0x9
+  0095 - 15         - DUP
+  0096 - 0204100000 - POP 0x1004
+  009b - 16         - DROP
+  009c - 0104100000 - PUSH 0x1004
+  00a1 - 15         - DUP
+  00a2 - 0301000000 - PUSHC 0x1
+  00a7 - 14         - OUT
+  00a8 - 16         - DROP
+  00a9 - 0301000000 - PUSHC 0x1
+  00ae - 0302000000 - PUSHC 0x2
+  00b3 - 030a000000 - PUSHC 0xa
+  00b8 - 0303000000 - PUSHC 0x3
+  00bd - 05         - SUB
+  00be - 06         - MUL
+  00bf - 04         - ADD
+  00c0 - 15         - DUP
+  00c1 - 0301000000 - PUSHC 0x1
+  00c6 - 14         - OUT
+  00c7 - 16         - DROP
+  00c8 - 00         - HALT
+out_log: |-
+  TICK:   0 | PC:  1 | AR:  0 | mc: 1 | mc=0x6160008 | IR:PUSHC      | DR:0      | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:   1 | PC:  5 | AR:  1 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:0      | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:   2 | PC:  6 | AR:  5 | mc:18 | mc=0x6164208 | IR:DUP        | DR:0      | TOS:0      | Z:0 N:0 | DS:[0, 0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:   3 | PC:  7 | AR:  6 | mc: 6 | mc=0x6164008 | IR:POP        | DR:0      | TOS:0      | Z:0 N:0 | DS:[0, 0, 0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:   4 | PC: 11 | AR:  7 | mc: 7 | mc=0x4190010 | IR:POP        | DR:4096   | TOS:0      | Z:0 N:0 | DS:[0, 0, 0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:   5 | PC: 11 | AR:4096 | mc: 8 | mc=0x43c0000 | IR:POP        | DR:4096   | TOS:0      | Z:0 N:0 | DS:[0, 0, 0] | RS:[] | [ARLatch.DR, MEMSignal.WRITE_WORD, MCAdrLatch.INC]
+  TICK:   6 | PC: 12 | AR: 11 | mc:19 | mc=0x6160108 | IR:DROP       | DR:4096   | TOS:0      | Z:0 N:0 | DS:[0, 0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:   7 | PC: 13 | AR: 12 | mc: 1 | mc=0x6160108 | IR:PUSHC      | DR:4096   | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:   8 | PC: 17 | AR: 13 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:13     | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:   9 | PC: 18 | AR: 17 | mc:18 | mc=0x6164208 | IR:DUP        | DR:13     | TOS:13     | Z:0 N:0 | DS:[0, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  10 | PC: 19 | AR: 18 | mc: 6 | mc=0x6164008 | IR:POP        | DR:13     | TOS:13     | Z:0 N:0 | DS:[0, 13, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  11 | PC: 23 | AR: 19 | mc: 7 | mc=0x4190010 | IR:POP        | DR:4096   | TOS:13     | Z:0 N:0 | DS:[0, 13, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  12 | PC: 23 | AR:4096 | mc: 8 | mc=0x43c0000 | IR:POP        | DR:4096   | TOS:13     | Z:0 N:0 | DS:[0, 13, 13] | RS:[] | [ARLatch.DR, MEMSignal.WRITE_WORD, MCAdrLatch.INC]
+  TICK:  13 | PC: 24 | AR: 23 | mc:18 | mc=0x6160108 | IR:DUP        | DR:4096   | TOS:13     | Z:0 N:0 | DS:[0, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  14 | PC: 25 | AR: 24 | mc: 1 | mc=0x6164008 | IR:PUSHC      | DR:4096   | TOS:13     | Z:0 N:0 | DS:[0, 13, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  15 | PC: 29 | AR: 25 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:13     | Z:0 N:0 | DS:[0, 13, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  16 | PC: 30 | AR: 29 | mc:28 | mc=0x6164208 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:0 | DS:[13, 13, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  Output: 13 on port 1
+  TICK:  17 | PC: 30 | AR: 29 | mc:29 | mc=0x4000040 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:0 | DS:[0, 13, 1] | RS:[] | [IOLatch.OUT, MCAdrLatch.INC]
+  TICK:  18 | PC: 31 | AR: 30 | mc:19 | mc=0x6160108 | IR:DROP       | DR:1      | TOS:13     | Z:0 N:0 | DS:[0, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  19 | PC: 32 | AR: 31 | mc: 1 | mc=0x6160108 | IR:PUSHC      | DR:1      | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  20 | PC: 36 | AR: 32 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:10     | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  21 | PC: 37 | AR: 36 | mc: 3 | mc=0x6164208 | IR:PUSH       | DR:10     | TOS:10     | Z:0 N:0 | DS:[0, 10] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  22 | PC: 41 | AR: 37 | mc: 4 | mc=0x4190010 | IR:PUSH       | DR:4096   | TOS:10     | Z:0 N:0 | DS:[0, 10] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  23 | PC: 41 | AR:4096 | mc: 5 | mc=0x4390000 | IR:PUSH       | DR:13     | TOS:10     | Z:0 N:0 | DS:[0, 10] | RS:[] | [ARLatch.DR, MEMSignal.READ_WORD, DRLatch.MEM, MCAdrLatch.INC]
+  TICK:  24 | PC: 42 | AR: 41 | mc:20 | mc=0x6164208 | IR:CMP        | DR:13     | TOS:13     | Z:0 N:0 | DS:[0, 10, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  25 | PC: 43 | AR: 42 | mc:19 | mc=0x6162c08 | IR:DROP       | DR:13     | TOS:13     | Z:0 N:1 | DS:[0, 10, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.CMP, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  26 | PC: 44 | AR: 43 | mc:19 | mc=0x6160108 | IR:DROP       | DR:13     | TOS:10     | Z:0 N:1 | DS:[0, 10] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  27 | PC: 45 | AR: 44 | mc:25 | mc=0x6160108 | IR:JN         | DR:13     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  28 | PC: 49 | AR: 45 | mc:26 | mc=0x4190010 | IR:JN         | DR:59     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  29 | PC: 59 | AR: 45 | mc: 0 | mc=0x2000003 | IR:JN         | DR:59     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [JUMP.JN, MCAdrLatch.ZERO]
+  TICK:  30 | PC: 60 | AR: 59 | mc: 1 | mc=0x6160008 | IR:PUSHC      | DR:59     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  31 | PC: 64 | AR: 60 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  32 | PC: 65 | AR: 64 | mc:17 | mc=0x6164208 | IR:NEG        | DR:1      | TOS:1      | Z:0 N:1 | DS:[0, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  33 | PC: 66 | AR: 65 | mc:19 | mc=0x6162188 | IR:DROP       | DR:1      | TOS:-1     | Z:0 N:1 | DS:[0, -1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.NEG, TOSLatch.ALU, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  34 | PC: 67 | AR: 66 | mc:23 | mc=0x6160108 | IR:JZ         | DR:1      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  35 | PC: 71 | AR: 67 | mc:24 | mc=0x4190010 | IR:JZ         | DR:81     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  36 | PC: 71 | AR: 67 | mc: 0 | mc=0x2000002 | IR:JZ         | DR:81     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [JUMP.JZ, MCAdrLatch.ZERO]
+  TICK:  37 | PC: 72 | AR: 71 | mc: 1 | mc=0x6160008 | IR:PUSHC      | DR:81     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  38 | PC: 76 | AR: 72 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:100    | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  39 | PC: 77 | AR: 76 | mc:21 | mc=0x6164208 | IR:JMP        | DR:100    | TOS:100    | Z:0 N:1 | DS:[0, 100] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  40 | PC: 81 | AR: 77 | mc:22 | mc=0x4190010 | IR:JMP        | DR:86     | TOS:100    | Z:0 N:1 | DS:[0, 100] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  41 | PC: 86 | AR: 77 | mc: 0 | mc=0x2000001 | IR:JMP        | DR:86     | TOS:100    | Z:0 N:1 | DS:[0, 100] | RS:[] | [JUMP.JMP, MCAdrLatch.ZERO]
+  TICK:  42 | PC: 87 | AR: 86 | mc:18 | mc=0x6160008 | IR:DUP        | DR:86     | TOS:100    | Z:0 N:1 | DS:[0, 100] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  43 | PC: 88 | AR: 87 | mc: 1 | mc=0x6164008 | IR:PUSHC      | DR:86     | TOS:100    | Z:0 N:1 | DS:[0, 100, 100] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  44 | PC: 92 | AR: 88 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:100    | Z:0 N:1 | DS:[0, 100, 100] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  45 | PC: 93 | AR: 92 | mc:28 | mc=0x6164208 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:1 | DS:[100, 100, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  Output: `d` (100) on port 1
+  TICK:  46 | PC: 93 | AR: 92 | mc:29 | mc=0x4000040 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:1 | DS:[0, 100, 1] | RS:[] | [IOLatch.OUT, MCAdrLatch.INC]
+  TICK:  47 | PC: 94 | AR: 93 | mc:19 | mc=0x6160108 | IR:DROP       | DR:1      | TOS:100    | Z:0 N:1 | DS:[0, 100] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  48 | PC: 95 | AR: 94 | mc: 3 | mc=0x6160108 | IR:PUSH       | DR:1      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  49 | PC: 99 | AR: 95 | mc: 4 | mc=0x4190010 | IR:PUSH       | DR:4096   | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  50 | PC: 99 | AR:4096 | mc: 5 | mc=0x4390000 | IR:PUSH       | DR:13     | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.DR, MEMSignal.READ_WORD, DRLatch.MEM, MCAdrLatch.INC]
+  TICK:  51 | PC:100 | AR: 99 | mc: 1 | mc=0x6164208 | IR:PUSHC      | DR:13     | TOS:13     | Z:0 N:1 | DS:[0, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  52 | PC:104 | AR:100 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:13     | TOS:13     | Z:0 N:1 | DS:[0, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  53 | PC:105 | AR:104 | mc:20 | mc=0x6164208 | IR:CMP        | DR:13     | TOS:13     | Z:0 N:1 | DS:[0, 13, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  54 | PC:106 | AR:105 | mc:19 | mc=0x6162c08 | IR:DROP       | DR:13     | TOS:13     | Z:1 N:0 | DS:[0, 13, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.CMP, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  55 | PC:107 | AR:106 | mc:19 | mc=0x6160108 | IR:DROP       | DR:13     | TOS:13     | Z:1 N:0 | DS:[0, 13] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  56 | PC:108 | AR:107 | mc:23 | mc=0x6160108 | IR:JZ         | DR:13     | TOS:0      | Z:1 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  57 | PC:112 | AR:108 | mc:24 | mc=0x4190010 | IR:JZ         | DR:122    | TOS:0      | Z:1 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  58 | PC:122 | AR:108 | mc: 0 | mc=0x2000002 | IR:JZ         | DR:122    | TOS:0      | Z:1 N:0 | DS:[0] | RS:[] | [JUMP.JZ, MCAdrLatch.ZERO]
+  TICK:  59 | PC:123 | AR:122 | mc: 1 | mc=0x6160008 | IR:PUSHC      | DR:122    | TOS:0      | Z:1 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  60 | PC:127 | AR:123 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:0      | Z:1 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  61 | PC:128 | AR:127 | mc:17 | mc=0x6164208 | IR:NEG        | DR:1      | TOS:1      | Z:1 N:0 | DS:[0, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  62 | PC:129 | AR:128 | mc:19 | mc=0x6162188 | IR:DROP       | DR:1      | TOS:-1     | Z:0 N:1 | DS:[0, -1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.NEG, TOSLatch.ALU, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  63 | PC:130 | AR:129 | mc:23 | mc=0x6160108 | IR:JZ         | DR:1      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  64 | PC:134 | AR:130 | mc:24 | mc=0x4190010 | IR:JZ         | DR:144    | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  65 | PC:134 | AR:130 | mc: 0 | mc=0x2000002 | IR:JZ         | DR:144    | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [JUMP.JZ, MCAdrLatch.ZERO]
+  TICK:  66 | PC:135 | AR:134 | mc: 1 | mc=0x6160008 | IR:PUSHC      | DR:144    | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  67 | PC:139 | AR:135 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:7      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  68 | PC:140 | AR:139 | mc:21 | mc=0x6164208 | IR:JMP        | DR:7      | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  69 | PC:144 | AR:140 | mc:22 | mc=0x4190010 | IR:JMP        | DR:149    | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  70 | PC:149 | AR:140 | mc: 0 | mc=0x2000001 | IR:JMP        | DR:149    | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [JUMP.JMP, MCAdrLatch.ZERO]
+  TICK:  71 | PC:150 | AR:149 | mc:18 | mc=0x6160008 | IR:DUP        | DR:149    | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  72 | PC:151 | AR:150 | mc: 6 | mc=0x6164008 | IR:POP        | DR:149    | TOS:7      | Z:0 N:1 | DS:[0, 7, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  73 | PC:155 | AR:151 | mc: 7 | mc=0x4190010 | IR:POP        | DR:4100   | TOS:7      | Z:0 N:1 | DS:[0, 7, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  74 | PC:155 | AR:4100 | mc: 8 | mc=0x43c0000 | IR:POP        | DR:4100   | TOS:7      | Z:0 N:1 | DS:[0, 7, 7] | RS:[] | [ARLatch.DR, MEMSignal.WRITE_WORD, MCAdrLatch.INC]
+  TICK:  75 | PC:156 | AR:155 | mc:19 | mc=0x6160108 | IR:DROP       | DR:4100   | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  76 | PC:157 | AR:156 | mc: 3 | mc=0x6160108 | IR:PUSH       | DR:4100   | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  77 | PC:161 | AR:157 | mc: 4 | mc=0x4190010 | IR:PUSH       | DR:4100   | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  78 | PC:161 | AR:4100 | mc: 5 | mc=0x4390000 | IR:PUSH       | DR:7      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.DR, MEMSignal.READ_WORD, DRLatch.MEM, MCAdrLatch.INC]
+  TICK:  79 | PC:162 | AR:161 | mc:18 | mc=0x6164208 | IR:DUP        | DR:7      | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  80 | PC:163 | AR:162 | mc: 1 | mc=0x6164008 | IR:PUSHC      | DR:7      | TOS:7      | Z:0 N:1 | DS:[0, 7, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  81 | PC:167 | AR:163 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:7      | Z:0 N:1 | DS:[0, 7, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  82 | PC:168 | AR:167 | mc:28 | mc=0x6164208 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:1 | DS:[7, 7, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  Output: 7 on port 1
+  TICK:  83 | PC:168 | AR:167 | mc:29 | mc=0x4000040 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:1 | DS:[0, 7, 1] | RS:[] | [IOLatch.OUT, MCAdrLatch.INC]
+  TICK:  84 | PC:169 | AR:168 | mc:19 | mc=0x6160108 | IR:DROP       | DR:1      | TOS:7      | Z:0 N:1 | DS:[0, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  85 | PC:170 | AR:169 | mc: 1 | mc=0x6160108 | IR:PUSHC      | DR:1      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  86 | PC:174 | AR:170 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:0      | Z:0 N:1 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  87 | PC:175 | AR:174 | mc: 1 | mc=0x6164208 | IR:PUSHC      | DR:1      | TOS:1      | Z:0 N:1 | DS:[0, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  88 | PC:179 | AR:175 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:2      | TOS:1      | Z:0 N:1 | DS:[0, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  89 | PC:180 | AR:179 | mc: 1 | mc=0x6164208 | IR:PUSHC      | DR:2      | TOS:2      | Z:0 N:1 | DS:[0, 1, 2] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  90 | PC:184 | AR:180 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:10     | TOS:2      | Z:0 N:1 | DS:[0, 1, 2] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  91 | PC:185 | AR:184 | mc: 1 | mc=0x6164208 | IR:PUSHC      | DR:10     | TOS:10     | Z:0 N:1 | DS:[1, 2, 10] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  92 | PC:189 | AR:185 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:3      | TOS:10     | Z:0 N:1 | DS:[1, 2, 10] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  93 | PC:190 | AR:189 | mc:10 | mc=0x6164208 | IR:SUB        | DR:3      | TOS:3      | Z:0 N:1 | DS:[2, 10, 3] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  94 | PC:191 | AR:190 | mc:11 | mc=0x6160988 | IR:MUL        | DR:3      | TOS:7      | Z:0 N:0 | DS:[1, 2, 7] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.SUB, TOSLatch.ALU, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  95 | PC:192 | AR:191 | mc: 9 | mc=0x6160d88 | IR:ADD        | DR:3      | TOS:14     | Z:0 N:0 | DS:[0, 1, 14] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.MUL, TOSLatch.ALU, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  96 | PC:193 | AR:192 | mc:18 | mc=0x6160588 | IR:DUP        | DR:3      | TOS:15     | Z:0 N:0 | DS:[0, 15] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, ALU_OP.ADD, TOSLatch.ALU, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  97 | PC:194 | AR:193 | mc: 1 | mc=0x6164008 | IR:PUSHC      | DR:3      | TOS:15     | Z:0 N:0 | DS:[0, 15, 15] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK:  98 | PC:198 | AR:194 | mc: 2 | mc=0x4190010 | IR:PUSHC      | DR:1      | TOS:15     | Z:0 N:0 | DS:[0, 15, 15] | RS:[] | [ARLatch.PC, MEMSignal.READ_WORD, DRLatch.MEM, PCLatch.INC4, MCAdrLatch.INC]
+  TICK:  99 | PC:199 | AR:198 | mc:28 | mc=0x6164208 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:0 | DS:[15, 15, 1] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, NOSLatch.TOS, TOSLatch.DR, PCLatch.INC, MCAdrLatch.INPUT]
+  Output: 15 on port 1
+  TICK: 100 | PC:199 | AR:198 | mc:29 | mc=0x4000040 | IR:OUT        | DR:1      | TOS:1      | Z:0 N:0 | DS:[0, 15, 1] | RS:[] | [IOLatch.OUT, MCAdrLatch.INC]
+  TICK: 101 | PC:200 | AR:199 | mc:19 | mc=0x6160108 | IR:DROP       | DR:1      | TOS:15     | Z:0 N:0 | DS:[0, 15] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]
+  TICK: 102 | PC:201 | AR:200 | mc:30 | mc=0x6160108 | IR:HALT       | DR:1      | TOS:0      | Z:0 N:0 | DS:[0] | RS:[] | [ARLatch.PC, MEMSignal.READ_BYTE, IRLatch.MEM, TOSLatch.NOS, PCLatch.INC, MCAdrLatch.INPUT]

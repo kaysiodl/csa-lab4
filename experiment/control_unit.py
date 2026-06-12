@@ -1,14 +1,24 @@
 import logging
-from typing import ClassVar
 
 from alu import ALU_OP
 from datapath import DataPath
 from isa import Opcode
-from microcode import microcode, op2microcode, decode_mc
+from microcode import decode_mc, microcode, op2microcode
 from signals_cpu import (
-    ARLatch, NOSLatch, IOLatch, DRLatch, IRLatch,
-    JUMP, MCAdrLatch, MEMSignal, PCLatch, PROG, RSLatch, TOSLatch,
+    JUMP,
+    PROG,
+    ARLatch,
+    DRLatch,
+    IOLatch,
+    IRLatch,
+    MCAdrLatch,
+    MEMSignal,
+    NOSLatch,
+    PCLatch,
+    RSLatch,
+    TOSLatch,
 )
+
 
 class InvalidSignalError(Exception):
     pass
@@ -19,7 +29,6 @@ class ControlUnit:
     datapath: DataPath
     tick: int
     instruction_count: int
-    signal_handlers: ClassVar[dict]
 
     def __init__(self, datapath: DataPath):
         self.mc_adr = 0
@@ -27,7 +36,7 @@ class ControlUnit:
         self.tick = 0
         self.instruction_count = 0
         dp = self.datapath
-        self.signal_handlers: dict[type] = {
+        self.signal_handlers: dict = {
             RSLatch: dp.signal_return_stack,
             ARLatch: dp.signal_latch_ar,
             MEMSignal: dp.signal_mem,
@@ -46,12 +55,12 @@ class ControlUnit:
         match signal:
             case MCAdrLatch.ZERO:
                 self.mc_adr = 0
-                self.instruction_count += 1
             case MCAdrLatch.INC:
                 self.mc_adr += 1
             case MCAdrLatch.INPUT:
                 opcode = Opcode(self.datapath.ir)
                 self.mc_adr = op2microcode(opcode)
+                self.instruction_count += 1
 
     def execute_micro(self, mc_word: int):
         signals = decode_mc(mc_word)
@@ -65,9 +74,11 @@ class ControlUnit:
         logging.debug("%s", self._repr_state(mc_word))
         self.tick += 1
 
-    def run_machine(self):
+    def run_machine(self, limit=None):
         try:
             while True:
+                if limit is not None and self.tick >= limit:
+                    break
                 self.execute_micro(microcode[self.mc_adr])
         except StopIteration:
             pass
@@ -83,15 +94,12 @@ class ControlUnit:
             opcode_s = Opcode(dp.ir).name
         except ValueError:
             opcode_s = f"0x{dp.ir:02x}"
+        z = int(dp.alu.zero_flag)
+        n = int(dp.alu.neg_flag)
+        ds = dp.data_stack.stack[-2:] + [dp.tos]
+        rs = dp.return_stack.return_stack[-3:]
         return (
-            "TICK:{:4d} | PC:{:3d} | AR:{:3d} | mc:{:2d} | "
-            "mc=0x{:07x} | IR:{:10s} | DR:{:6} | TOS:{:6} | "
-            "Z:{} N:{} | DS:{} | RS:{} | [{}]"
-        ).format(
-            self.tick, dp.pc, dp.ar, self.mc_adr,
-            mc_word, opcode_s, str(dp.dr), str(dp.tos),
-            int(dp.alu.zero_flag), int(dp.alu.neg_flag),
-            dp.data_stack.stack[-2:] + [dp.tos],
-            dp.return_stack.return_stack[-3:],
-            sig_str,
+            f"TICK:{self.tick:4d} | PC:{dp.pc:3d} | AR:{dp.ar:3d} | mc:{self.mc_adr:2d} | "
+            f"mc=0x{mc_word:07x} | IR:{opcode_s:10s} | DR:{str(dp.dr):6} | TOS:{str(dp.tos):6} | "
+            f"Z:{z} N:{n} | DS:{ds} | RS:{rs} | [{sig_str}]"
         )

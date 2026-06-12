@@ -33,7 +33,8 @@ class ALU:
             case ALU_OP.MUL:
                 self.result = self.first * self.second
             case ALU_OP.DIV:
-                if self.second == 0: raise ZeroDivisionError("division by zero")
+                if self.second == 0:
+                    raise ZeroDivisionError("division by zero")
                 self.result = int(self.first / self.second)
             case ALU_OP.AND:
                 self.result = self.first & self.second
@@ -52,14 +53,18 @@ class ALU:
         self.zero_flag = False
         self.neg_flag = False
         self.carry_flag = False
-        if self.result > 0x7FFFFFFF: self.carry_flag = True
-        if self.result == 0: self.zero_flag = True
-        if self.result < 0: self.neg_flag = True
+        if self.result > 0x7FFFFFFF:
+            self.carry_flag = True
+        if self.result == 0:
+            self.zero_flag = True
+        if self.result < 0:
+            self.neg_flag = True
         self.result = self._to_int32(self.result)
         return self.result
 
     @staticmethod
     def _to_int32(val):
         val = val & 0xFFFFFFFF
-        if val >= 0x80000000: val -= 0x100000000
+        if val >= 0x80000000:
+            val -= 0x100000000
         return val
