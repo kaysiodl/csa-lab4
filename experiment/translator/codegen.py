@@ -1,8 +1,8 @@
 from isa import Opcode
-from linter import Symbols, type_of
-from nodes import (
+from translator.linter import Symbols, type_of
+from translator.nodes import (
     Const, Str, Name, BinOp, Compare, Var, Set, If, While, Def, Call,
-    Print, Read, ReadStr, Len,
+    Print, Read, ReadStr, Len, Array, ARef, ASet,
 )
 
 PARAM_ADDR = 0x0F00
@@ -68,10 +68,32 @@ def codegen(ast: list, sym: Symbols) -> bytearray:
             gen_if(node, param)
         elif isinstance(node, While):
             gen_while(node, param)
-        elif isinstance(node, (Set, Var)):
+        elif isinstance(node, Set):
             gen(node.expr, param)
             emit(Opcode.DUP)
             emit_arg(Opcode.POP, variables[node.name])
+        elif isinstance(node, Var):
+            if isinstance(node.expr, Array):
+                emit_arg(Opcode.PUSHC, variables[node.name])
+            else:
+                gen(node.expr, param)
+                emit(Opcode.DUP)
+                emit_arg(Opcode.POP, variables[node.name])
+        elif isinstance(node, ARef):
+            emit_arg(Opcode.PUSHC, variables[node.name])
+            gen(node.idx, param)
+            emit_arg(Opcode.PUSHC, 4)
+            emit(Opcode.MUL)
+            emit(Opcode.ADD)
+            emit(Opcode.LOAD)
+        elif isinstance(node, ASet):
+            gen(node.val, param)
+            emit_arg(Opcode.PUSHC, variables[node.name])
+            gen(node.idx, param)
+            emit_arg(Opcode.PUSHC, 4)
+            emit(Opcode.MUL)
+            emit(Opcode.ADD)
+            emit(Opcode.STORE)
         elif isinstance(node, Call):
             gen(node.arg, param)
             call_fixups.append((emit_jump(Opcode.CALL), node.name))

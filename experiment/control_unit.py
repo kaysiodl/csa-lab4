@@ -10,9 +10,6 @@ from signals_cpu import (
     JUMP, MCAdrLatch, MEMSignal, PCLatch, PROG, RSLatch, TOSLatch,
 )
 
-INSTRUCTION_LIMIT = 1_00
-
-
 class InvalidSignalError(Exception):
     pass
 
@@ -78,7 +75,7 @@ class ControlUnit:
             pass
         return self.instruction_count, self.tick
 
-    def _repr_state(self, mc_word: int) -> str:
+    def _repr_state(self, mc_word: int):
         dp = self.datapath
         signals = decode_mc(mc_word)
         sig_str = ", ".join(f"{type(s).__name__}.{s.name}" for s in signals)

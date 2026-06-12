@@ -90,3 +90,21 @@ class ReadStr(Node):
 @dataclass
 class Len(Node):
     arg: Node
+
+
+@dataclass
+class Array(Node):
+    size: int
+
+
+@dataclass
+class ARef(Node):
+    name: str
+    idx: Node
+
+
+@dataclass
+class ASet(Node):
+    name: str
+    idx: Node
+    val: Node

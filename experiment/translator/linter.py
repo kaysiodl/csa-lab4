@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from nodes import (
+from translator.nodes import (
     Const, Str, Name, BinOp, Compare, Var, Set, If, While, Def, Call,
-    Print, Read, ReadStr, Len,
+    Print, Read, ReadStr, Len, Array, ARef, ASet,
 )
 
 VAR_BASE = 0x1000
@@ -43,10 +43,10 @@ def lint(ast: list):
     var_next = VAR_BASE
     str_next = STR_BASE
 
-    def alloc_var(name):
+    def alloc_var(name, count=1):
         nonlocal var_next
         variables[name] = var_next
-        var_next += 4
+        var_next += 4 * count
 
     def alloc_string(value):
         nonlocal str_next
@@ -94,8 +94,36 @@ def lint(ast: list):
             return
         if isinstance(node, (Read, ReadStr)):
             return
+        if isinstance(node, Array):
+            raise LintError("'array' is only valid as the initializer of 'var'")
+        if isinstance(node, ARef):
+            if node.name not in variables:
+                raise LintError(f"Undefined variable: '{node.name}'")
+            if var_types.get(node.name) != "array":
+                raise LintError(f"'{node.name}' is not an array")
+            check(node.idx, param)
+            return
+        if isinstance(node, ASet):
+            if node.name not in variables:
+                raise LintError(f"Undefined variable: '{node.name}'")
+            if var_types.get(node.name) != "array":
+                raise LintError(f"'{node.name}' is not an array")
+            check(node.idx, param)
+            check(node.val, param)
+            return
         if isinstance(node, Var):
-            raise LintError("'var' is only allowed at top level")
+            if node.name in variables:
+                raise LintError(f"Variable '{node.name}' already declared")
+            if node.name in functions:
+                raise LintError(f"'{node.name}' already declared as function")
+            if isinstance(node.expr, Array):
+                alloc_var(node.name, node.expr.size)
+                var_types[node.name] = "array"
+            else:
+                alloc_var(node.name)
+                check(node.expr, param)
+                var_types[node.name] = type_of(node.expr, var_types, param)
+            return
         if isinstance(node, Def):
             raise LintError("'def' is only allowed at top level")
         raise LintError(f"Unexpected node: {node!r}")
@@ -107,15 +135,7 @@ def lint(ast: list):
             functions[node.name] = node.param
 
     for node in ast:
-        if isinstance(node, Var):
-            if node.name in variables:
-                raise LintError(f"Variable '{node.name}' already declared")
-            if node.name in functions:
-                raise LintError(f"'{node.name}' already declared as function")
-            alloc_var(node.name)
-            check(node.expr, None)
-            var_types[node.name] = type_of(node.expr, var_types, None)
-        elif isinstance(node, Def):
+        if isinstance(node, Def):
             if node.name in variables:
                 raise LintError(f"'{node.name}' already declared as variable")
             for expr in node.body:
@@ -124,27 +144,3 @@ def lint(ast: list):
             check(node, None)
 
     return Symbols(variables, var_types, functions, strings)
-
-
-if __name__ == "__main__":
-    from parser import tokenize, parse
-
-    source = """
-    (var x 5)
-    (var y 10)
-    (def factorial (n)
-        (if (= n 0)
-            1
-            (* n (call factorial (- n 1)))))
-    (print (call factorial x))
-    (print "hello")
-    (var s "world")
-    (print s)
-    """
-
-    ast = parse(tokenize(source))
-    sym = lint(ast)
-    print("variables:", {k: hex(v) for k, v in sym.variables.items()})
-    print("var_types:", sym.var_types)
-    print("functions:", sym.functions)
-    print("strings:", {k: hex(v) for k, v in sym.strings.items()})

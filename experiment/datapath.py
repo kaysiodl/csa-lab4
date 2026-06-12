@@ -11,11 +11,11 @@ class DataStack:
 
     def push(self, val: int): self.stack.append(val)
 
-    def pop(self) -> int:
+    def pop(self):
         if not self.stack: raise IndexError("Data stack underflow")
         return self.stack.pop()
 
-    def peek(self) -> int: return self.stack[-1] if self.stack else 0
+    def peek(self): return self.stack[-1] if self.stack else 0
 
 
 class ReturnStack:
@@ -24,11 +24,11 @@ class ReturnStack:
 
     def push(self, addr: int): self.return_stack.append(addr)
 
-    def pop(self) -> int:
+    def pop(self):
         if not self.return_stack: raise IndexError("Return stack underflow")
         return self.return_stack.pop()
 
-    def peek(self) -> int: return self.return_stack[-1] if self.return_stack else 0
+    def peek(self): return self.return_stack[-1] if self.return_stack else 0
 
     def __repr__(self): return str(self.return_stack)
 
@@ -42,7 +42,7 @@ class Memory:
         return self.memory[addr % len(self.memory)]
 
     def read_word(self, addr: int):
-        """Читает 4 байта little-endian,знаковый"""
+        """Читаем 4 байта little-endian,знаковый"""
         b = [self.memory[(addr + i) % len(self.memory)] for i in range(4)]
         val = b[0] | (b[1] << 8) | (b[2] << 16) | (b[3] << 24)
         if val >= 0x80000000:
@@ -50,7 +50,7 @@ class Memory:
         return val
 
     def write_word(self, addr: int, val: int):
-        """Пишет 4 байта little-endian."""
+        """Пишем 4 байта little-endian."""
         val = val & 0xFFFFFFFF
         for i in range(4):
             self.memory[(addr + i) % len(self.memory)] = (val >> (8 * i)) & 0xFF
@@ -61,7 +61,7 @@ class IOUnit:
         self._input_buffer = input_buffer
         self._output_buffer: deque = deque()
 
-    def read(self) -> int:
+    def read(self):
         if not self._input_buffer: raise IOError("No input to read")
         return self._input_buffer.popleft()
 

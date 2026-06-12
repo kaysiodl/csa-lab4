@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 
-from nodes import (
+from translator.nodes import (
     Const, Str, Name, BinOp, Compare, Var, Set, If, While, Def, Call,
-    Print, Read, ReadStr, Len,
+    Print, Read, ReadStr, Len, Array, ARef, ASet,
 )
 
 
@@ -117,6 +117,17 @@ def _build(head, args, line):
     if head == "len":
         _require(args, 1, "len", line)
         return Len(args[0])
+    if head == "array":
+        _require(args, 1, "array", line)
+        if not isinstance(args[0], Const):
+            raise SyntaxError(f"'array' size must be a constant at line {line}")
+        return Array(args[0].value)
+    if head == "aref":
+        _require(args, 2, "aref", line)
+        return ARef(_as_name(args[0], "'aref'", line), args[1])
+    if head == "aset":
+        _require(args, 3, "aset", line)
+        return ASet(_as_name(args[0], "'aset'", line), args[1], args[2])
     raise SyntaxError(f"Unknown form '{head}' at line {line}")
 
 
@@ -197,17 +208,3 @@ def parse(tokens: list[Token]):
         results.append(parse_expr())
     return results
 
-
-if __name__ == "__main__":
-    source = """
-    (var x 5)
-    (def factorial (n)
-        (if (= n 1)
-            1
-            (* n (call factorial (- n 1)))))
-    (print (call factorial x))
-    (print "hello world")
-    """
-
-    for node in parse(tokenize(source)):
-        print(node)

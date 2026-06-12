@@ -2,5 +2,5 @@
 .idea/
 tests/
 __pycache__/
-main.py
-test_cpu.py
+./test_cpu.py
+./conftest.py
