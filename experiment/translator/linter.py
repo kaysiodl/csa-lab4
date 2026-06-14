@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from translator.nodes import (
+    AddC,
     ARef,
     Array,
     ASet,
@@ -81,7 +82,7 @@ def lint(ast: list):
             if node.name == param or node.name in variables:
                 return
             raise LintError(f"Undefined variable: '{node.name}'")
-        if isinstance(node, (BinOp, Compare)):
+        if isinstance(node, (BinOp, Compare, AddC)):
             check(node.left, param)
             check(node.right, param)
             return

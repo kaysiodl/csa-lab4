@@ -2,6 +2,7 @@ from isa import Opcode
 
 from translator.linter import Symbols, type_of
 from translator.nodes import (
+    AddC,
     ARef,
     Array,
     ASet,
@@ -79,6 +80,10 @@ def codegen(ast: list, sym: Symbols) -> bytearray:
             gen(node.left, param)
             gen(node.right, param)
             emit(BINOPS[node.op])
+        elif isinstance(node, AddC):
+            gen(node.left, param)
+            gen(node.right, param)
+            emit(Opcode.ADC)
         elif isinstance(node, Compare):
             gen_compare(node, param)
         elif isinstance(node, If):

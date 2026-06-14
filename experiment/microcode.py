@@ -47,6 +47,7 @@ def op2microcode(op: Opcode) -> int:
         Opcode.SWAP:   39,
         Opcode.LOAD:   42,
         Opcode.STORE:  43,
+        Opcode.ADC:    45,
     }[op]
 
 
@@ -193,6 +194,9 @@ _steps: list[list] = [
     # STORE: 43 (без префетча — лезет в память)
     [ARLatch.TOS, TOSLatch.NOS, MCAdrLatch.INC],
     [MEMSignal.WRITE_WORD, MCAdrLatch.ZERO],
+
+    # ADC: 45, NOS + TOS + C
+    [ALU_OP.ADC, TOSLatch.ALU, *FETCH_TAIL],
 ]
 
 microcode: list[int] = [encode_mc(step) for step in _steps]

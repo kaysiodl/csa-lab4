@@ -32,6 +32,7 @@ class Opcode(Enum):
     FROMRS = 0b11011
     LOAD = 0b11100
     STORE = 0b11101
+    ADC = 0b11110
 
 
 HAS_OPERAND = {

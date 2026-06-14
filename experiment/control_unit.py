@@ -88,18 +88,17 @@ class ControlUnit:
 
     def _repr_state(self, mc_word: int):
         dp = self.datapath
-        signals = decode_mc(mc_word)
-        sig_str = ", ".join(f"{type(s).__name__}.{s.name}" for s in signals)
         try:
             opcode_s = Opcode(dp.ir).name
         except ValueError:
             opcode_s = f"0x{dp.ir:02x}"
         z = int(dp.alu.zero_flag)
         n = int(dp.alu.neg_flag)
+        c = int(dp.alu.carry_flag)
         ds = dp.data_stack.stack[-2:] + [dp.tos]
         rs = dp.return_stack.return_stack[-3:]
         return (
-            f"TICK:{self.tick:4d} | PC:{dp.pc:3d} | AR:{dp.ar:3d} | mc:{self.mc_adr:2d} | "
-            f"mc=0x{mc_word:07x} | IR:{opcode_s:10s} | DR:{str(dp.dr):6} | TOS:{str(dp.tos):6} | "
-            f"Z:{z} N:{n} | DS:{ds} | RS:{rs} | [{sig_str}]"
+            f"TICK:{self.tick:>7d} | PC:{dp.pc:>5d} | AR:{dp.ar:>6d} | mc:{self.mc_adr:>2d} | "
+            f"mc=0x{mc_word:07x} | IR:{opcode_s:<6} | DR:{dp.dr:>11d} | TOS:{dp.tos:>11d} | "
+            f"Z:{z} N:{n} C:{c} | DS:{str(ds):<25} | RS:{rs}"
         )

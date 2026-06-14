@@ -108,3 +108,9 @@ class ASet(Node):
     name: str
     idx: Node
     val: Node
+
+
+@dataclass
+class AddC(Node):
+    left: Node
+    right: Node

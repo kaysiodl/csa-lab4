@@ -13,6 +13,7 @@ class ALU_OP(Enum):
     INC = 9
     MOD = 10
     CMP = 11
+    ADC = 12
 
 
 class ALU:
@@ -25,9 +26,12 @@ class ALU:
         self.second = 0
 
     def compute(self, op: ALU_OP) -> int:
+        carry_in = 1 if self.carry_flag else 0
         match op:
             case ALU_OP.ADD:
                 self.result = self.first + self.second
+            case ALU_OP.ADC:
+                self.result = self.first + self.second + carry_in
             case ALU_OP.SUB:
                 self.result = self.first - self.second
             case ALU_OP.MUL:
@@ -52,9 +56,8 @@ class ALU:
                 self.result = self.first - self.second
         self.zero_flag = False
         self.neg_flag = False
-        self.carry_flag = False
-        if self.result > 0x7FFFFFFF:
-            self.carry_flag = True
+        if op == ALU_OP.ADC:
+            self.carry_flag = (self.first & 0xFFFFFFFF) + (self.second & 0xFFFFFFFF) + carry_in > 0xFFFFFFFF
         if self.result == 0:
             self.zero_flag = True
         if self.result < 0:

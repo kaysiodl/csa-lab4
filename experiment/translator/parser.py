@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 
 from translator.nodes import (
+    AddC,
     ARef,
     Array,
     ASet,
@@ -133,6 +134,9 @@ def _build(head, args, line):
     if head == "len":
         _require(args, 1, "len", line)
         return Len(args[0])
+    if head == "addc":
+        _require(args, 2, "addc", line)
+        return AddC(args[0], args[1])
     if head == "array":
         _require(args, 1, "array", line)
         if not isinstance(args[0], Const):
