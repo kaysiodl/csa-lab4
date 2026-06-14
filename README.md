@@ -44,12 +44,12 @@ compare_op   ::= "=" | "!=" | "<" | ">"
 var          ::= "var" IDENT s_expr
                | "var" IDENT "(" "array" INT_LIT ")"
 set          ::= "set" IDENT s_expr
-array_op     ::= "aref" IDENT s_expr             (* массив, индекс *)
-               | "aset" IDENT s_expr s_expr      (* массив, индекс, значение *)
-addc         ::= "addc" s_expr s_expr            (* сложение с переносом: a + b + C *)
+array_op     ::= "aref" IDENT s_expr            
+               | "aset" IDENT s_expr s_expr     
+addc         ::= "addc" s_expr s_expr           
 
-if           ::= "if" s_expr s_expr s_expr       (* условие, then, else *)
-while        ::= "while" s_expr s_expr+          (* условие, затем тело (можно больше 1 выражения) *)
+if           ::= "if" s_expr s_expr s_expr  
+while        ::= "while" s_expr s_expr+          
 
 def          ::= "def" IDENT "(" IDENT ")" s_expr+   
 call         ::= "call" IDENT s_expr                 
