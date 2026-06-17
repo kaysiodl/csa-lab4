@@ -22,7 +22,7 @@ jobs:
         run: ruff check
 
       - name: Mypy (types)
-        run: mypy
+        run: mypy .
 
       - name: Pytest (golden tests)
         run: pytest golden.py -v
