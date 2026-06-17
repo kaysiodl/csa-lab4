@@ -19,10 +19,10 @@ jobs:
         run: pip install ruff mypy pytest pyyaml
 
       - name: Ruff (lint)
-        run: ruff check experiment
+        run: ruff check
 
       - name: Mypy (types)
-        run: mypy experiment
+        run: mypy
 
       - name: Pytest (golden tests)
         run: pytest golden.py -v
