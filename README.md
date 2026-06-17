@@ -371,14 +371,14 @@ pytest experiment/golden.py --regen     # пересоздать эталоны 
 
 | Файл                | Описание                                                                       |
 |:--------------------|:-------------------------------------------------------------------------------|
-| [hello.yaml](experiment/golden/hello.yaml)                | `(print "Hello, world!")` — вывод строки                                       |
-| [cat.yaml](experiment/golden/cat.yaml)                    | чтение строки (`read_str`), вывод, переприсваивание строкового литерала        |
-| [hello_user_name.yaml](experiment/golden/hello_user_name.yaml) | диалог: приветствие с именем пользователя                                      |
-| [sort.yaml](experiment/golden/sort.yaml)                  | пузырьковая сортировка массива чисел из ввода                                  |
-| [double_arith.yaml](experiment/golden/double_arith.yaml)  | 64-битное сложение: 2×32-битные лимбы, перенос через флаг `C` и команду `addc` |
-| [expr.yaml](experiment/golden/expr.yaml)                  | выражения как значения (`set` и `if` возвращают результат)                     |
-| [factorial.yaml](experiment/golden/factorial.yaml)        | рекурсивный факториал — проверка вызовов `call`/`ret`                          |
-| [prob1.yaml](experiment/golden/prob1.yaml)                | Euler Problem 4: наибольшее палиндромное произведение двух трёхзначных         |
+| [hello.yaml](golden/hello.yaml)                | `(print "Hello, world!")` — вывод строки                                       |
+| [cat.yaml](golden/cat.yaml)                    | чтение строки (`read_str`), вывод, переприсваивание строкового литерала        |
+| [hello_user_name.yaml](golden/hello_user_name.yaml) | диалог: приветствие с именем пользователя                                      |
+| [sort.yaml](golden/sort.yaml)                  | пузырьковая сортировка массива чисел из ввода                                  |
+| [double_arith.yaml](golden/double_arith.yaml)  | 64-битное сложение: 2×32-битные лимбы, перенос через флаг `C` и команду `addc` |
+| [expr.yaml](golden/expr.yaml)                  | выражения как значения (`set` и `if` возвращают результат)                     |
+| [factorial.yaml](golden/factorial.yaml)        | рекурсивный факториал — проверка вызовов `call`/`ret`                          |
+| [prob1.yaml](golden/prob1.yaml)                | Euler Problem 4: наибольшее палиндромное произведение двух трёхзначных         |
 
 ```text
              старший      младший

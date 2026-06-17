@@ -1,13 +1,6 @@
+experiment/.venv/
 .idea/
-.venv/
-venv/
+tests/
 __pycache__/
-*.pyc
-
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-
-*.bin
-*.bin.dbg
-*.log
+./test_cpu.py
+../conftest.py

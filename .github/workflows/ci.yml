@@ -25,4 +25,4 @@ jobs:
         run: mypy experiment
 
       - name: Pytest (golden tests)
-        run: pytest experiment/golden.py -v
+        run: pytest golden.py -v

@@ -1,6 +1,0 @@
-.venv/
-.idea/
-tests/
-__pycache__/
-./test_cpu.py
-./conftest.py
