@@ -1,5 +1,4 @@
 from isa import Opcode
-
 from translator.linter import Symbols, type_of
 from translator.nodes import (
     AddC,

@@ -8,11 +8,12 @@ from pathlib import Path
 import pytest
 import yaml
 from codegen import build_memory, codegen
+from linter import lint
+from parser import parse, tokenize
+
 from control_unit import ControlUnit
 from datapath import DataPath, IOController, IOUnit
 from isa import disasm
-from linter import lint
-from parser import parse, tokenize
 
 GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
 LOG_LIMIT = 10_000
