@@ -61,8 +61,8 @@ STR_LIT      ::= '"' CHAR* '"'
 IDENT        ::= LETTER ( LETTER | DIGIT | "_" )*
 DIGIT        ::= "0" … "9"
 LETTER       ::= "a" … "z" | "A" … "Z"
-CHAR         ::= любой символ, кроме '"'
-COMMENT      ::= ";" { любой символ } <конец строки>
+CHAR         ::= [^"\\]            
+COMMENT      ::= ";" [^\n]* "\n"   
 ```
 
 ### Семантика
